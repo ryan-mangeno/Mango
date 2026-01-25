@@ -1,2 +1,11 @@
 # Mango
 Vulkan based Game Engine in C++
+
+## Project Structure
+![Structure](MangoProject.png)
+
+* **MangoEngine (`DLL` / `.so`)**: The core shared library containing the renderer, ECS, and low-level systems.
+* **Hot-Reloadable Game Code (`DLL` / `.so`)**: A lightweight module for gameplay logic. It can be recompiled and reloaded while the app is running for instant feedback.
+* **Game App (`EXE`)**: The shipping client that hosts the engine and manages the lifecycle of the game logic.
+* **Dev Test (`EXE`)**: An isolated sandbox for stress-testing engine features in isolation.
+* **Editor (`EXE`)**: A separate application for world-building, kept out of the final shipping build.
