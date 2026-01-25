@@ -1,6 +1,27 @@
 {
     "configurations": [
         {
+            "name": "macOS",
+            "includePath": [
+                "${workspaceFolder}/engine/src/**",
+                "${VULKAN_SDK}/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "MGO_EXPORT"
+            ],
+            "macFrameworkPath": [
+                "/Library/Frameworks",
+                "/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-arm64" 
+        },
+        {
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/engine/src/**",
