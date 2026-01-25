@@ -15,15 +15,17 @@ namespace Mango {
     }
 
     void log_message(log_level level, const char* message, ...) {
-        const char* level_str = "";
-        switch (level) {
-            case log_level::LOG_LEVEL_FATAL: level_str = "FATAL"; break;
-            case log_level::LOG_LEVEL_ERROR: level_str = "ERROR"; break;
-            case log_level::LOG_LEVEL_WARN:  level_str = "WARN";  break;
-            case log_level::LOG_LEVEL_INFO:  level_str = "INFO";  break;
-            case log_level::LOG_LEVEL_DEBUG: level_str = "DEBUG"; break;
-            case log_level::LOG_LEVEL_TRACE: level_str = "TRACE"; break;
-        }
+        
+        const char* level_strs[6] = {
+            "[FATAL]: ",
+            "[ERROR]: ",
+            "[WARN]:  ",
+            "[INFO]:  ",
+            "[DEBUG]: ",
+            "[TRACE]: "
+        };
+
+        const char* level_str = level_strs[static_cast<int>(level)];
 
         // TODO: setup output color based on level, and send to stderr for errors potentially
         // b8 is_err = (level == log_level::LOG_LEVEL_FATAL || level == log_level::LOG_LEVEL_ERROR);
@@ -38,7 +40,7 @@ namespace Mango {
         va_start(args, message);
         vsnprintf(message_buffer, sizeof(message_buffer), message, args);
         va_end(args);
-        sprintf(final_buffer, "[%s]: %s\n", level_str, message_buffer);
+        sprintf(final_buffer, "%s%s\n", level_str, message_buffer);
 
         // TODO: platform specific output (e.g. OutputDebugString on Windows)
         printf("%s", final_buffer);
