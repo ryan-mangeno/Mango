@@ -40,7 +40,7 @@ namespace Mango {
         va_start(args, message);
         vsnprintf(message_buffer, sizeof(message_buffer), message, args);
         va_end(args);
-        sprintf(final_buffer, "%s%s\n", level_str, message_buffer);
+        snprintf(final_buffer, sizeof(final_buffer), "%s%s\n", level_str, message_buffer);
 
         // TODO: platform specific output (e.g. OutputDebugString on Windows)
         printf("%s", final_buffer);
