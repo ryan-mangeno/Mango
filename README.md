@@ -2,7 +2,7 @@
 Vulkan based Game Engine in C++
 
 ## Project Structure
-![Structure](MangoProject.png)
+![Structure](README-Assets/MangoProject.png)
 
 * **MangoEngine (`DLL` / `.so`)**: The core shared library containing the renderer, ECS, and low-level systems.
 * **Hot-Reloadable Game Code (`DLL` / `.so`)**: A lightweight module for gameplay logic. It can be recompiled and reloaded while the app is running for instant feedback.
@@ -23,4 +23,11 @@ Vulkan based Game Engine in C++
 * Physics 
 
 ## Engine Architecture
-![Arch](EngineArch-1.png)
+![Arch](README-Assets/EngineArch.png)
+
+
+## Setup
+
+### Install Vulkan
+
+* **Vulkan SDK** - Download the installer for your specific operating system (Windows, macOS, or Linux) from the [Vulkan SDK Home Page](https://vulkan.lunarg.com/sdk/home).
