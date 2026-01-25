@@ -31,6 +31,6 @@ Vulkan based Game Engine in C++
 ### Install Vulkan, Clang
 
 * **Vulkan SDK** - Download the installer for your specific operating system (Windows, macOS, or Linux) from the [Vulkan SDK Home Page](https://vulkan.lunarg.com/sdk/home). Then refer to your specific os for specific setup instructions regarding environent variables, dependencies, etc, if needed.
-![Vulkan Setup](README-Assets/VulkanSetup.png)
+<img src="README-Assets/VulkanSetup.png" alt="Vulkan Setup" width="600">
 * **Clang++** - If your on MacOS, it will be installed with `xcode-select --install`, for windows follow these instructions, first navigate to [LLVM Releases Page](https://releases.llvm.org/). and select the most recent stable version
 ![Clang Windows Setup](README-Assets/clangsetup.png)
