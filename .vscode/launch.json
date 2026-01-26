@@ -34,6 +34,7 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/bin/",
             "environment": [],
+            "console":"newExternalWindow",
         }
     ]
 }
