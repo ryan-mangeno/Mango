@@ -42,7 +42,7 @@ namespace Mango {
         va_end(args);
         snprintf(final_buffer, sizeof(final_buffer), "%s%s\n", level_str, message_buffer);
 
-        // TODO: platform specific output (e.g. OutputDebugString on Windows)
+        // TODO: Platform specific output  
         printf("%s", final_buffer);
     }
 } // namespace Mango
