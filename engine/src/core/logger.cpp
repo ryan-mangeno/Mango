@@ -5,16 +5,19 @@
 #include <stdarg.h>
 
 namespace Mango {
-    b8 initialize_logging() {
+    b8 Logger::initialize_logging() 
+    {
         // TODO: create log files
         return TRUE;
     }
 
-    void shutdown_logging() {
+    void Logger::shutdown_logging() 
+    {
         // TODO: cleanup logging/write queued entries
     }
 
-    void log_message(log_level level, const char* message, ...) {
+    void Logger::log_message(log_level level, const char* message, ...) 
+    {
         
         const char* level_strs[6] = {
             "[FATAL]: ",

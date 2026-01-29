@@ -14,11 +14,11 @@ namespace Mango {
     using i32 = signed int;
     using i64 = signed long long;
 
-    // Floating point types
+    // Floating point types.
     using f32 = float;
     using f64 = double;
 
-    // Boolean types
+    // Boolean types.
     using b32 = int;
     using b8 = char;
 
