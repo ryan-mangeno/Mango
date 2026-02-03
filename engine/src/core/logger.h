@@ -27,8 +27,7 @@ namespace Mango {
 
     // TODO: Implement logging backend
     // colors, file output, other vars user can set ...
-    class Logger
-    {
+    class Logger {
         public:
             static Logger& get_instance() {
                 static Logger instance;
