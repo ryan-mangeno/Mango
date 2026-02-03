@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.hpp"
+#include <defines.hpp>
 
 namespace Mango {
 
@@ -16,15 +16,13 @@ namespace Mango {
     #endif
 
     #define MGO_ASSERT(expr) \
-            if (!(expr)) \
-            { \
+            if (!(expr)) { \
                 report_assertion_failure(#expr, "Assertion failed", __FILE__, __LINE__); \
                 debugbreak(); \
             } \
 
     #define MGO_ASSERT_MSG(expr, msg) \
-            if (!(expr)) \
-            { \
+            if (!(expr)) { \
                 report_assertion_failure(#expr, msg, __FILE__, __LINE__); \
                 debugbreak(); \
             } \

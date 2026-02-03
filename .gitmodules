@@ -1,0 +1,3 @@
+[submodule "vendor/stdx"]
+	path = vendor/stdx
+	url = https://github.com/ryan-mangeno/stdx

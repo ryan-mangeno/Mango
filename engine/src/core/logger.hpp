@@ -1,7 +1,6 @@
 #pragma once 
 
-#include "defines.hpp"
-
+#include <defines.hpp>
 
 #define LOG_WARN_ENABLED 1
 #define LOG_INFO_ENABLED 1
@@ -17,8 +16,7 @@
 namespace Mango {
 
 
-    enum class log_level 
-    {
+    enum class log_level  {
         LOG_LEVEL_FATAL = 0,
         LOG_LEVEL_ERROR = 1,
         LOG_LEVEL_WARN  = 2,
