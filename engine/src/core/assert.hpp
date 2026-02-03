@@ -9,7 +9,6 @@ namespace Mango {
 
     #ifdef MGO_ASSERTS_ENABLED
         #if _MSC_VER
-            #include <intrin.h>
             #define debugbreak() __debugbreak()
         #else 
             #define debugbreak() __builtin_trap()
