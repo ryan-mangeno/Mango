@@ -1,5 +1,5 @@
-#include <core/logger.hpp>
-#include <core/assert.hpp>
+#include <core/logger.h>
+#include <core/assert.h>
 #include <iostream>
 
 using namespace Mango;

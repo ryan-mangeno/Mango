@@ -1,5 +1,5 @@
-#include "assert.hpp"
-#include "logger.hpp"
+#include "assert.h"
+#include "logger.h"
 
 namespace Mango {
 

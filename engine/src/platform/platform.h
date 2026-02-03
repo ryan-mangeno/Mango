@@ -1,6 +1,8 @@
 #pragma once
 
-#include <defines.hpp>
+#include <defines.h>
+
+// #include <stdx/functional.h>
 
 namespace Mango {
 
@@ -19,7 +21,10 @@ namespace Mango {
 
 	class Window {
 	public:
-		using EventCallbackFn = std::function<void(Event&)>;
+		
+		// TODO: add event callback (I am currently working on stl impls for these kindof things)
+		// using EventCallbackFn = stdx::function<void(Event&)>;
+		//virtual void set_event_callback(const EventCallbackFn& callback) = 0;
 
 		virtual ~Window() {}
 
@@ -28,7 +33,6 @@ namespace Mango {
 		virtual u32 width() const = 0;
 		virtual u32 height() const = 0;
 
-		virtual void set_event_callback(const EventCallbackFn& callback) = 0;
 		virtual void set_vsync(bool enabled) = 0;
 		virtual bool is_vsync() const = 0;
 
