@@ -6,8 +6,8 @@
 #include <windowsx.h>
 #include <stdlib.h>
 
+// defined at bottom
 LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param);
-
 namespace Mango {
 
     struct InternalState {
@@ -25,6 +25,9 @@ namespace Mango {
     PlatformState::~PlatformState() {
 
     }
+
+    // TODO: should add running bool to state
+    b8 PlatformState::is_running() { return true; }
 
     b8 PlatformState::startup(const AppAttribs& attribs) {
         state_ = static_cast<InternalState*>malloc(sizeof(InternalState));     
@@ -189,6 +192,60 @@ namespace Mango {
         Sleep(ms);
     }
 
+}
+
+
+LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param) {
+    switch (msg) {
+        case WM_ERASEBKGND:
+            // notify the os erasing will be handled by app to prevent flicker
+            return 1;
+        case WM_CLOSE:
+            // TODO: fire an event for app to quit
+            return 0;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            return 0;
+        case WM_SIZE: {
+            // RECT r;
+            // GetClientRect(hwnd, &r);
+            // u32 width = r.right - r.left;
+            // u32 height = r.bottom - r.top;
+
+            // TODO: fire window resize event
+        }   break;
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
+        case WM_KEYUP:
+        case WM_SYSKEYUP: {
+            // b8 pressed = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
+            // TODO: input processing
+        }   break;
+        case WM_MOUSEMOVE: {
+            // i32 x = GET_X_LPARAM(l_param);
+            // i32 y = GET_Y_LPARAM(l_param);
+            // TODO: input processing;
+        }   break;
+        case WM_MOUSEHWEEL: {
+            // i32 z_delta = GET_WHEEL_DELTA_WPARAM(w_param);
+            // if (z_delta != 0) {
+            //    // flaten input to os-indipendent (-1, 1)
+            //     z_delta = (z_delta < 0) ? -1 : 1; // just want to know if its up or down;
+            // }
+            // TODO: input processing;
+        }   break;
+        case WM_LBUTTONDOWN:
+        case WM_MBUTTONDOWN:
+        case WM_RBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_MBUTTONUP:
+        case WM_RBUTTONUP: {
+            // b8 pressed = msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN;
+            // TODO: input processing;
+        }   break;
+
+        return DefWindowProcA(hwnd, msg, w_param, l_param);
+    }
 }
 
 #endif

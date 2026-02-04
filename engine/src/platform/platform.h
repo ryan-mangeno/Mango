@@ -36,6 +36,7 @@ namespace Mango {
 				return pstate;
 			}
 
+			b8	 is_running();
 			b8	 startup(const AppAttribs& attribs = AppAttribs());
 			void shutdown();
 
