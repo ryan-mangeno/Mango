@@ -1,4 +1,5 @@
 #include "logger.h"
+#include <platform/platform.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -7,7 +8,7 @@
 namespace Mango {
     b8 Logger::initialize_logging() {
         // TODO: create log files
-        return TRUE;
+        return true;
     }
 
     void Logger::shutdown_logging() {
@@ -42,8 +43,7 @@ namespace Mango {
         va_end(args);
         snprintf(final_buffer, sizeof(final_buffer), "%s%s\n", level_str, message_buffer);
 
-        // TODO: Platform specific output  
-        printf("%s", final_buffer);
+        PlatformState::get().console_write(final_buffer, level);
     }
 } // namespace Mango
 

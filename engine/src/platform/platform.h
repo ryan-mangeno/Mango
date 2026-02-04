@@ -1,6 +1,7 @@
 #pragma once
 
 #include <defines.h>
+#include <core/logger.h>
 
 // #include <stdx/functional.h>
 
@@ -30,6 +31,11 @@ namespace Mango {
 			PlatformState();
 			~PlatformState();
 
+			static PlatformState& get() noexcept {
+				static PlatformState pstate;
+				return pstate;
+			}
+
 			b8	 startup(const AppAttribs& attribs = AppAttribs());
 			void shutdown();
 
@@ -41,8 +47,8 @@ namespace Mango {
 			void* copy_memory(void* dest, void* source, u64 size);
 			void* set_memory(void* dest, i32 value, u64 size);
 
-			void console_write(const char* message, u8 color);
-			void console_write_error(const char* message, u8 color);
+			void console_write(const char* message, log_level color);
+			void console_write_error(const char* message, log_level color);
 
 			f64 get_absolute_time();
 

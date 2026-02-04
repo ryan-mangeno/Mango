@@ -20,7 +20,7 @@ namespace Mango {
 
     // Boolean types.
     using b32 = int;
-    using b8 = char;
+    using b8 = bool;
 
     static_assert(sizeof(u8)  == 1, "u8 must be 1 byte");
     static_assert(sizeof(u16) == 2, "u16 must be 2 bytes");

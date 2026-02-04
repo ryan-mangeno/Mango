@@ -16,7 +16,7 @@
 namespace Mango {
 
 
-    enum class log_level  {
+    enum class log_level : i8 {
         LOG_LEVEL_FATAL = 0,
         LOG_LEVEL_ERROR = 1,
         LOG_LEVEL_WARN  = 2,
@@ -24,6 +24,7 @@ namespace Mango {
         LOG_LEVEL_DEBUG = 4,
         LOG_LEVEL_TRACE = 5
     };
+    
 
     // TODO: Implement logging backend
     // colors, file output, other vars user can set ...

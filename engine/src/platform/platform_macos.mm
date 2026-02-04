@@ -1,10 +1,12 @@
 #include "platform.h"
-
 #include <core/logger.h>
 
 #if MGO_PLATFORM_APPLE
 
 #import <Cocoa/Cocoa.h> 
+
+#include <stdlib.h>
+#include <time.h>
 
 
 @interface AppleWindowDelegate : NSObject <NSWindowDelegate>
@@ -27,6 +29,8 @@ namespace Mango {
         AppleWindowDelegate* delegate;
         b8 quit_requested;
     };
+
+    static f64 start_time = 0;
 
     PlatformState::PlatformState() {
         
@@ -73,6 +77,8 @@ namespace Mango {
         [NSApp activateIgnoringOtherApps:YES];
         [NSApp finishLaunching];
 
+        start_time = get_absolute_time();
+
         return true;
     }
 
@@ -96,8 +102,6 @@ namespace Mango {
                                    dequeue:YES])) {
                 [NSApp sendEvent:event]; // sends event to window
                 [NSApp updateWindows];   // notifies os we are still processing
-
-                MGO_INFO("-Processing Event-");
             }
         }
 
@@ -105,39 +109,73 @@ namespace Mango {
     }
 
     void* PlatformState::allocate(u64 size, b8 aligned) {
-        return nullptr;
-    }
+        return malloc(size); // TODO: add aligned logic
+    }   
 
     void PlatformState::free(void* block, b8 aligned) {
-
+        ::free(block); // TODO: add aligned logic
     }
 
     void* PlatformState::zero_memory(void* block, u64 size) {
-        return nullptr;
+        return memset(block, 0, size);
     }
 
     void* PlatformState::copy_memory(void* dest, void* source, u64 size) {
-        return nullptr;
+        return memcpy(dest, source, size);
     }
 
     void* PlatformState::set_memory(void* dest, i32 value, u64 size) {
-        return nullptr;
+        return memset(dest, value, size);
     }   
 
-    void PlatformState::console_write(const char* message, u8 color) {
+    void PlatformState::console_write(const char* message, log_level color) {
+        static const char* levels[6] = {
+        "\033[41m", // FATAL (White on Red background)
+        "\033[31m", // ERROR (Red text)
+        "\033[33m", // WARN  (Yellow text)
+        "\033[32m", // INFO  (Green text)
+        "\033[34m", // DEBUG (Blue text)
+        "\033[37m"  // TRACE (Grey text)
+        };
+    
+        const char* reset = "\033[0m";
 
+        // TODO: should look into templating for converting log_level to i8 statically
+        // but since its just logging primarily for debug
+        fprintf(stdout, "%s%s%s", levels[static_cast<int>(color)], message, reset);
+        fflush(stdout);
     }
 
-    void PlatformState::console_write_error(const char* message, u8 color) {
+    void PlatformState::console_write_error(const char* message, log_level color) {
+        static const char* levels[6] = {
+            "\033[41m", // FATAL 
+            "\033[31m", // ERROR 
+            "\033[33m", // WARN  
+            "\033[32m", // INFO  
+            "\033[34m", // DEBUG 
+            "\033[37m"  // TRACE 
+        };
+        
+        const char* reset = "\033[0m";
 
+        fprintf(stderr, "%s%s%s", levels[static_cast<int>(color)], message, reset);
+        fflush(stderr);
     }
 
     f64 PlatformState::get_absolute_time() {
-        return 0.0f;
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        f64 now_time = static_cast<f64>(now.tv_sec) + static_cast<f64>(now.tv_nsec) * static_cast<f64>(1e-9);
+
+        return now_time - start_time;
     }
 
     void PlatformState::sleep(u64 ms) {
+        struct timespec ts;
+        ts.tv_sec  = ms / static_cast<u64>(1e3);
+        ts.tv_nsec = (ms % static_cast<u64>(1e3)) * static_cast<f64>(1e9);
 
+        nanosleep(&ts, nullptr);
     }
 
 }

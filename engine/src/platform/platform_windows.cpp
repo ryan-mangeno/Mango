@@ -4,6 +4,7 @@
 
 #include <windows.h>
 #include <windowsx.h>
+#include <stdlib.h>
 
 LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param);
 
@@ -13,6 +14,9 @@ namespace Mango {
         HINSTANCE h_instance;
         HWND hwnd;
     };
+
+    static f64 clock_frequency; // multiplier to take clock cycles and multiply by this to get start time
+    static LARGE_INTEGER start_time;
 
     PlatformState::PlatformState() {
         
@@ -97,53 +101,92 @@ namespace Mango {
             state_->hwnd = handle;
         }
 
-        // TODO: show window
+        b8 should_activate = true; // TODO: if the window should not accept input, this should be false
+        i32 show_window_command_flags = should_activate ? SW_SHOW : SW_SHOWNOACTIVATE;
+        // if initially minimized use SW_MINIMIZE : SW_SHOWMINNOACTIVE
+        // if initially maximized use SW_SHOWMAXIMIZED : SW_MAXIMIZE
+        ShowWindow(state_->hwnd, show_window_command_flags);
+
+        // clock setup
+        LARGE_INTEGER frequency;
+        QueryPerformanceFrequency(&frequency);
+        clock_frequency = 1.0 / static_cast<f64>(frequency.QuadPart);
+        QueryPerformanceCounter(&start_time);
 
         return true;
     }
 
     void PlatformState::shutdown() {
 
+        if (state_->hwnd) {
+            DestroyWindow(state_hwnd);
+            state_->hwnd = nullptr;
+        }
+
     }
 
     b8 PlatformState::pump_message() {
+        MSG message;
+        while (PeekMessageA(&message, NULL, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&message);
+            DispatchMessage(&message);
+        }
 
+        return true;
     }
 
     void* PlatformState::allocate(u64 size, b8 aligned) {
-        return nullptr;
-    }
+        return malloc(size);
+    }   
 
     void PlatformState::free(void* block, b8 aligned) {
-
+        free(block);
     }
 
     void* PlatformState::zero_memory(void* block, u64 size) {
-        return nullptr;
+        return memset(block, 0, size);
     }
 
     void* PlatformState::copy_memory(void* dest, void* source, u64 size) {
-        return nullptr;
+        return memcpy(dest, source, size);
     }
 
     void* PlatformState::set_memory(void* dest, i32 value, u64 size) {
-        return nullptr;
+        return memset(dest, value, size);
     }   
 
-    void PlatformState::console_write(const char* message, u8 color) {
+    void PlatformState::console_write(const char* message, log_level color) {
+        HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+        // FATAL, ERROR, WARN, INFO, DEBUG, TRACE
+        static u8 levels[6] = {64, 4, 6, 2, 1, 8};
+        SetConsoleTextAttribute(console_handle, levels[color]);
 
+        OutputDebugStringA(message);
+        u64 len = strlen(message);
+        LPDWORD number_written = 0;
+        WriteConsoleA(console_handle, message, (DWORD)len, number_written, 0);
     }
 
-    void PlatformState::console_write_error(const char* message, u8 color) {
+    void PlatformState::console_write_error(const char* message, log_level color) {
+        HANDLE console_handle = GetStdHandle(STD_ERROR_HANDLE);
+        // FATAL, ERROR, WARN, INFO, DEBUG, TRACE
+        static u8 levels[6] = {64, 4, 6, 2, 1, 8};
+        SetConsoleTextAttribute(console_handle, levels[color]);
 
+        OutputDebugStringA(message);
+        u64 len = strlen(message);
+        LPDWORD number_written = 0;
+        WriteConsoleA(console_handle, message, (DWORD)len, number_written, 0);
     }
 
     f64 PlatformState::get_absolute_time() {
-        return 0.0f;
+        LARGE_INTEGER now_time;
+        QueryPerformanceCounter(&now_time);
+        return static_cast<f64>(now_time.QuadPart * clock_frequency);
     }
 
     void PlatformState::sleep(u64 ms) {
-
+        Sleep(ms);
     }
 
 }
