@@ -29,8 +29,9 @@ namespace Mango {
         const char* level_str = level_strs[static_cast<int>(level)];
 
         b8 is_err = (level == log_level::LOG_LEVEL_FATAL || level == log_level::LOG_LEVEL_ERROR);
-        char message_buffer[4096];
-        char final_buffer[8192];
+        const i32 msg_len = 4096;
+        char message_buffer[msg_len];
+        char final_buffer[msg_len];
 
         memset(message_buffer, 0, sizeof(message_buffer));
         memset(final_buffer, 0, sizeof(final_buffer));

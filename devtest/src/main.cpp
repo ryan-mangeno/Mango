@@ -12,7 +12,12 @@ int main(int argc, char** argv) {
     MGO_ERROR("This is an error message.");
     
     Mango::PlatformState& p_state = Mango::PlatformState::get();
-    p_state.startup();
+    if (!p_state.startup({"Mango Engine", 960/2, 540/2, 960,540})) {
+        p_state.shutdown();
+        return 1;
+    }
+
+    Mango::f64 step = 1.0;
 
     while (p_state.is_running()) {
         p_state.pump_message();

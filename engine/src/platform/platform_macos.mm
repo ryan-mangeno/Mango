@@ -1,4 +1,6 @@
 #include "platform.h"
+
+#include <core/assert.h>
 #include <core/logger.h>
 
 #if MGO_PLATFORM_APPLE
@@ -42,17 +44,34 @@ namespace Mango {
     b8 PlatformState::startup(const AppAttribs& attribs) {
 
         state_ = static_cast<InternalState*>(malloc(sizeof(InternalState)));
+
+        if (!state_) {
+            MGO_FATAL("failed to allocate internal state!");
+            return false;
+        }
         zero_memory(state_, sizeof(InternalState));
         state_->quit_requested = false;
 
         state_->delegate = [[AppleWindowDelegate alloc] init]; 
+        if (!state_->delegate) {
+            MGO_FATAL("failed to initialize apple window delegate!");
+            return false;
+        }
         state_->delegate.quit_flag = &state_->quit_requested;
 
         state_->input_view = [[AppleInputView alloc] init];
-
+        if (!state_->input_view) {
+            MGO_FATAL("failed to initialize apple input!");
+            return false;
+        }
 
         // initializes app singleton
-        [NSApplication sharedApplication];
+        if (![NSApplication sharedApplication]) {
+            MGO_FATAL("failed to create app!");
+            return false;
+        }
+        
+        MGO_ASSERT_MSG([NSThread isMainThread], "app must exist on the main thread!");
 
         // shows in dock, has a menu, focus
         [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
@@ -67,6 +86,8 @@ namespace Mango {
                                           styleMask:style_mask
                                           backing:NSBackingStoreBuffered
                                           defer:NO];
+        
+        MGO_ASSERT
 
         [state_->window setTitle:[NSString stringWithUTF8String:attribs.title]];
 
@@ -100,8 +121,8 @@ namespace Mango {
             state_->window = nullptr;       
         }
 
-        [state_->delegate release];
-        [state_->input_view release];
+        [state_->delegate release]; // safe if nullptr
+        [state_->input_view release]; // same here
 
         state_->delegate = nullptr;
         state_->input_view = nullptr;
