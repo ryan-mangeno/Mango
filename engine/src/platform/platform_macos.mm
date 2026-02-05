@@ -87,7 +87,10 @@ namespace Mango {
                                           backing:NSBackingStoreBuffered
                                           defer:NO];
         
-        MGO_ASSERT
+        if (!state_->window) {
+            MGO_FATAL("failed to create apple window!");
+            return false;
+        }
 
         [state_->window setTitle:[NSString stringWithUTF8String:attribs.title]];
 
