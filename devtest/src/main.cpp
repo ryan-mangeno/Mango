@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
     
     Mango::PlatformState& p_state = Mango::PlatformState::get();
     if (!p_state.startup({"Mango Engine", 960/2, 540/2, 960,540})) {
+        MGO_ERROR("Engine failed startup!");
         p_state.shutdown();
         return 1;
     }

@@ -46,28 +46,25 @@ namespace Mango {
         state_ = static_cast<InternalState*>(malloc(sizeof(InternalState)));
 
         if (!state_) {
-            MGO_FATAL("failed to allocate internal state!");
             return false;
         }
+
         zero_memory(state_, sizeof(InternalState));
         state_->quit_requested = false;
 
         state_->delegate = [[AppleWindowDelegate alloc] init]; 
         if (!state_->delegate) {
-            MGO_FATAL("failed to initialize apple window delegate!");
             return false;
         }
         state_->delegate.quit_flag = &state_->quit_requested;
 
         state_->input_view = [[AppleInputView alloc] init];
         if (!state_->input_view) {
-            MGO_FATAL("failed to initialize apple input!");
             return false;
         }
 
         // initializes app singleton
         if (![NSApplication sharedApplication]) {
-            MGO_FATAL("failed to create app!");
             return false;
         }
         
@@ -88,7 +85,6 @@ namespace Mango {
                                           defer:NO];
         
         if (!state_->window) {
-            MGO_FATAL("failed to create apple window!");
             return false;
         }
 
