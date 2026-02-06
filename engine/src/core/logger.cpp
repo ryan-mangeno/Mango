@@ -1,5 +1,5 @@
 #include "logger.h"
-#include <platform/platform.h>
+#include <core/application.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -44,9 +44,9 @@ namespace Mango {
         snprintf(final_buffer, sizeof(final_buffer), "%s%s\n", level_str, message_buffer);
         
         if (is_err) {
-            PlatformState::get().console_write(final_buffer, level);
+            PlatformState::console_write(final_buffer, level);
         } else {
-            PlatformState::get().console_write_error(final_buffer, level);
+            PlatformState::console_write_error(final_buffer, level);
         }
     }
 } // namespace Mango

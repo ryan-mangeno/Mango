@@ -30,7 +30,7 @@ namespace Mango {
     // colors, file output, other vars user can set ...
     class Logger {
         public:
-            static Logger& get_instance() {
+            static Logger& get() {
                 static Logger instance;
                 return instance;
             }
@@ -43,28 +43,28 @@ namespace Mango {
     };
 
 
-    #define MGO_FATAL(msg, ...) ::Mango::Logger::get_instance().log_message(::Mango::log_level::LOG_LEVEL_FATAL, msg, ##__VA_ARGS__)
+    #define MGO_FATAL(msg, ...) ::Mango::Logger::get().log_message(::Mango::log_level::LOG_LEVEL_FATAL, msg, ##__VA_ARGS__)
     #ifndef MGO_ERROR
-        #define MGO_ERROR(msg, ...) ::Mango::Logger::get_instance().log_message(::Mango::log_level::LOG_LEVEL_ERROR, msg, ##__VA_ARGS__)
+        #define MGO_ERROR(msg, ...) ::Mango::Logger::get().log_message(::Mango::log_level::LOG_LEVEL_ERROR, msg, ##__VA_ARGS__)
     #endif
     
     #if LOG_WARN_ENABLED == 1
-        #define MGO_WARN(msg, ...)  ::Mango::Logger::get_instance().log_message(::Mango::log_level::LOG_LEVEL_WARN,  msg, ##__VA_ARGS__)
+        #define MGO_WARN(msg, ...)  ::Mango::Logger::get().log_message(::Mango::log_level::LOG_LEVEL_WARN,  msg, ##__VA_ARGS__)
     #else 
         #define MGO_WARN(msg, ...)
     #endif 
     #if LOG_INFO_ENABLED == 1
-        #define MGO_INFO(msg, ...)  ::Mango::Logger::get_instance().log_message(::Mango::log_level::LOG_LEVEL_INFO,  msg, ##__VA_ARGS__)
+        #define MGO_INFO(msg, ...)  ::Mango::Logger::get().log_message(::Mango::log_level::LOG_LEVEL_INFO,  msg, ##__VA_ARGS__)
     #else
         #define MGO_INFO(msg, ...)
     #endif
     #if LOG_DEBUG_ENABLED == 1
-        #define MGO_DEBUG(msg, ...) ::Mango::Logger::get_instance().log_message(::Mango::log_level::LOG_LEVEL_DEBUG, msg, ##__VA_ARGS__)
+        #define MGO_DEBUG(msg, ...) ::Mango::Logger::get().log_message(::Mango::log_level::LOG_LEVEL_DEBUG, msg, ##__VA_ARGS__)
     #else
         #define MGO_DEBUG(msg, ...)
     #endif
     #if LOG_TRACE_ENABLED == 1
-        #define MGO_TRACE(msg, ...) ::Mango::Logger::get_instance().log_message(::Mango::log_level::LOG_LEVEL_TRACE, msg, ##__VA_ARGS__)
+        #define MGO_TRACE(msg, ...) ::Mango::Logger::get().log_message(::Mango::log_level::LOG_LEVEL_TRACE, msg, ##__VA_ARGS__)
     #else
         #define MGO_TRACE(msg, ...)
     #endif

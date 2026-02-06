@@ -1,31 +1,38 @@
-#include <core/logger.h>
-#include <core/assert.h>
-
-#include <platform/platform.h>
+#include <entry.h>
 
 
-int main(int argc, char** argv) {
-    MGO_INFO("Mango Engine starting up...");
-    MGO_DEBUG("This is a debug message.");
-    MGO_WARN("This is a warning message.");
-    //MGO_ASSERT_MSG(false, "Test Assert");
-    MGO_ERROR("This is an error message.");
-    
-    Mango::PlatformState& p_state = Mango::PlatformState::get();
-    if (!p_state.startup({"Mango Engine", 960/2, 540/2, 960,540})) {
-        MGO_ERROR("Engine failed startup!");
-        p_state.shutdown();
-        return 1;
-    }
+using namespace Mango;
 
-    Mango::f64 step = 1.0;
+b8 initialize(struct game* game_inst);
+b8 update(struct game* game_inst, f32 delta_time);
+b8 render(struct game* game_inst, f32 delta_time);
+b8 on_resize(struct game* game_inst, f32 delta_time);
 
-    while (p_state.is_running()) {
-        p_state.pump_message();
-    }
 
-    MGO_INFO("Shutting Down!");
-    p_state.shutdown();
+b8 create_game(game* out_game) {
+    out_game->initialize = initialize;
+    out_game->render = render;
+    out_game->on_resize = on_resize;
+    out_game->update = update;
 
-    return 0;
+    return true;
+}
+
+b8 initialize(struct game* game_inst) {
+    return true;
+}
+
+// function pointer to game's update function
+b8 update(struct game* game_inst, f32 delta_time) {
+    return true;
+}
+
+// function pointer to game's render function
+b8 render(struct game* game_inst, f32 delta_time) {
+    return true;
+}
+
+// function pointer to handle resizes if applicable
+b8 on_resize(struct game* game_inst, f32 delta_time) {
+    return true;
 }

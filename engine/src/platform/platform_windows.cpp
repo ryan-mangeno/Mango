@@ -127,7 +127,7 @@ namespace Mango {
         }
 
     }
-
+    
     b8 PlatformState::pump_message() {
         MSG message;
         while (PeekMessageA(&message, NULL, 0, 0, PM_REMOVE)) {

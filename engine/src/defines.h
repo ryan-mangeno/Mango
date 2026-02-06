@@ -35,8 +35,9 @@ namespace Mango {
     static_assert(sizeof(f32) == 4, "f32 must be 4 bytes");
     static_assert(sizeof(f64) == 8, "f64 must be 8 bytes");
 
-    #define TRUE 1
-    #define FALSE 0
+
+    #define BIT(x) 1 << x
+
     // Platform detection
     #if defined(_WIN32) || defined(WIN32)
         #define MGO_PLATFORM_WINDOWS 1

@@ -8,7 +8,7 @@ mkdir -p ../bin
 cppFilenames=$(find . -type f -name "*.cpp")
 
 assembly="devtest"
-compilerFlags="-g -fdeclspec" 
+compilerFlags="-g -fdeclspec -fvisibility=hidden" 
 includeFlags="-Isrc -I../engine/src/"
 linkerFlags="-L../bin/ -lengine -L$VULKAN_SDK/lib -Wl,-rpath,@executable_path -Wl,-rpath,$VULKAN_SDK/lib"
 defines="-D_DEBUG -DMGO_IMPORT"

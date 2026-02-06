@@ -2,6 +2,7 @@
 
 #include <core/assert.h>
 #include <core/logger.h>
+#include <events/event.h>
 
 #if MGO_PLATFORM_APPLE
 
@@ -135,7 +136,7 @@ namespace Mango {
         // auto release pool needs to be made since events creating
         // during pump can leak memory
 
-        // TODO: look into how events can be propogated 
+        // TODO: propogate events below in callbacks 
         @autoreleasepool {
             NSEvent* event;
 
@@ -254,8 +255,8 @@ namespace Mango {
 }
 
 - (void)mouseDown:(NSEvent *)event { /* Left */ 
-
 }
+
 - (void)rightMouseDown:(NSEvent *)event { /* Right */ 
 }
 
