@@ -3,6 +3,8 @@
 #include <core/logger.h>
 #include <core/assert.h>
 
+#include <utility/type_traits.h>
+
 #include <game_types.h>
 
 #include <core/mgmemory.h>
@@ -19,7 +21,7 @@ b8 Application::create_app(game* game_inst) {
         MGO_ERROR("game instance is null!");
         return FALSE;
     }
-    
+
     app_state_.game_inst_ = game_inst;
     app_state_.width_ = game_inst->app_config_.width;
     app_state_.height_ = game_inst->app_config_.height;

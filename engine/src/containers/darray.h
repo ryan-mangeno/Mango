@@ -20,7 +20,7 @@ class MGO_API darray {
             }
         }
 
-        void push_back(const T& element) {
+        inline void push_back(const T& element) {
             if (length_ == capacity_) {
                 grow();
             }
@@ -28,7 +28,7 @@ class MGO_API darray {
             length_++;
         }
 
-        void emplace_back(T&& element) {
+        inline void emplace_back(T&& element) {
             if (length_ == capacity_) {
                 grow();
             } 
@@ -37,7 +37,7 @@ class MGO_API darray {
         }
         
         template<typename... Args>
-        void emplace_back(Args&& ...) {
+        inline void emplace_back(Args&& ...) {
             if (length_ == capacity_) {
                 grow();
             }
@@ -45,11 +45,39 @@ class MGO_API darray {
             length_++;
         }
 
-        void insert(i32 index, const T& element);
-        void insert(i32 index, T&& element);
+        inline void insert(i32 index, const T& element) {
+            if (length_ == capacity_) {
+                grow();
+            }
 
-        T pop_back();
-        T get(i32 index);
+            for (int i=length_ ; i > index ; i--) {
+                elements_[i] = move(elements_[i-1]);
+            }
+
+            elements_[index] = element;
+            length_++;
+        }
+
+        void insert(i32 index, T&& element) {
+            if (length_ == capacity_) {
+                grow();
+            }
+
+            for (int i=length_ ; i > index ; i--) {
+                elements_[i] = move(elements_[i-1]);
+            }
+
+            elements_[index] = move(element);
+            length_++;
+        }
+
+        T pop_back() {
+
+        }
+
+        T get(i32 index) {
+
+        }
 
         inline u64 size() const noexcept { return length_; }
         inline u64 capacity() const noexcept { return capacity_; }
