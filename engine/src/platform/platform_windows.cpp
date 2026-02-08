@@ -18,31 +18,25 @@ namespace Mango {
     static f64 clock_frequency; // multiplier to take clock cycles and multiply by this to get start time
     static LARGE_INTEGER start_time;
 
-    PlatformState::PlatformState() {
-        
-    }
-
-    PlatformState::~PlatformState() {
-
-    }
-
     // TODO: should add running bool to state
-    b8 PlatformState::is_running() { return true; }
+    b8 Platform::is_running() { return TRUE; }
 
-    b8 PlatformState::startup(const AppAttribs& attribs) {
-        state_ = static_cast<InternalState*>malloc(sizeof(InternalState));     
+    b8 Platform::startup(const AppConfig& attribs) {
+        internal_state_ = malloc(sizeof(InternalState));     
+
+        InternalState* state = static;
         
-        state_->h_instance = GetModuleHandle(0);
+        state->h_instance = GetModuleHandle(0);
 
         // setup and register window class
-        HICON icon = LoadIcon(state_->h_instance, IDI_APPLICATION);
+        HICON icon = LoadIcon(state->h_instance, IDI_APPLICATION);
         WNDCLASSA wc;
         memset(&wc, 0, sizeof(wc));
         wc.style = CS_DBCLKS; // get double clicks
         wc.lpfnWndProc = win32_process_message; // for handling events
         wc.cbClsExtra = 0;
         wc.cvWndExtra = 0;
-        wc.hInstance = state_->h_instance;
+        wc.hInstance = state->h_instance;
         wc.hIcon = icon;
         wc.hCursor = LoadCursor(NULL, IDC_ARROW); // manage the cursor manually
         wc.hbrBackround = NULL; // transparent
@@ -98,17 +92,17 @@ namespace Mango {
         if (handle == 0) {
             MessageBoxA(0, "window registration failed", "Error", MB_ICONEXCLAMATION | MB_OK);
             MGO_FATAL("window creation failed!");
-            return false;
+            return FALSE;
         }
         else {
-            state_->hwnd = handle;
+            state->hwnd = handle;
         }
 
-        b8 should_activate = true; // TODO: if the window should not accept input, this should be false
+        b8 should_activate = TRUE; // TODO: if the window should not accept input, this should be false
         i32 show_window_command_flags = should_activate ? SW_SHOW : SW_SHOWNOACTIVATE;
         // if initially minimized use SW_MINIMIZE : SW_SHOWMINNOACTIVE
         // if initially maximized use SW_SHOWMAXIMIZED : SW_MAXIMIZE
-        ShowWindow(state_->hwnd, show_window_command_flags);
+        ShowWindow(state->hwnd, show_window_command_flags);
 
         // clock setup
         LARGE_INTEGER frequency;
@@ -116,49 +110,50 @@ namespace Mango {
         clock_frequency = 1.0 / static_cast<f64>(frequency.QuadPart);
         QueryPerformanceCounter(&start_time);
 
-        return true;
+        return TRUE;
     }
 
-    void PlatformState::shutdown() {
+    void Platform::shutdown() {
+        InternalState* state = static_cast<InternalState*>(internal_state_);
 
-        if (state_->hwnd) {
-            DestroyWindow(state_hwnd);
-            state_->hwnd = nullptr;
+        if (state->hwnd) {
+            DestroyWindow(statehwnd);
+            state->hwnd = nullptr;
         }
 
     }
     
-    b8 PlatformState::pump_message() {
+    b8 Platform::pump_message() {
         MSG message;
         while (PeekMessageA(&message, NULL, 0, 0, PM_REMOVE)) {
             TranslateMessage(&message);
             DispatchMessage(&message);
         }
 
-        return true;
+        return TRUE;
     }
 
-    void* PlatformState::allocate(u64 size, b8 aligned) {
+    void* Platform::allocate(u64 size, b8 aligned) {
         return malloc(size);
     }   
 
-    void PlatformState::free(void* block, b8 aligned) {
+    void Platform::free(void* block, b8 aligned) {
         free(block);
     }
 
-    void* PlatformState::zero_memory(void* block, u64 size) {
+    void* Platform::zero_memory(void* block, u64 size) {
         return memset(block, 0, size);
     }
 
-    void* PlatformState::copy_memory(void* dest, void* source, u64 size) {
+    void* Platform::copy_memory(void* dest, void* source, u64 size) {
         return memcpy(dest, source, size);
     }
 
-    void* PlatformState::set_memory(void* dest, i32 value, u64 size) {
+    void* Platform::set_memory(void* dest, i32 value, u64 size) {
         return memset(dest, value, size);
     }   
 
-    void PlatformState::console_write(const char* message, log_level color) {
+    void Platform::console_write(const char* message, log_level color) {
         HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
         // FATAL, ERROR, WARN, INFO, DEBUG, TRACE
         static u8 levels[6] = {64, 4, 6, 2, 1, 8};
@@ -170,7 +165,7 @@ namespace Mango {
         WriteConsoleA(console_handle, message, (DWORD)len, number_written, 0);
     }
 
-    void PlatformState::console_write_error(const char* message, log_level color) {
+    void Platform::console_write_error(const char* message, log_level color) {
         HANDLE console_handle = GetStdHandle(STD_ERROR_HANDLE);
         // FATAL, ERROR, WARN, INFO, DEBUG, TRACE
         static u8 levels[6] = {64, 4, 6, 2, 1, 8};
@@ -182,13 +177,13 @@ namespace Mango {
         WriteConsoleA(console_handle, message, (DWORD)len, number_written, 0);
     }
 
-    f64 PlatformState::get_absolute_time() {
+    f64 Platform::get_absolute_time() {
         LARGE_INTEGER now_time;
         QueryPerformanceCounter(&now_time);
         return static_cast<f64>(now_time.QuadPart * clock_frequency);
     }
 
-    void PlatformState::sleep(u64 ms) {
+    void Platform::sleep(u64 ms) {
         Sleep(ms);
     }
 

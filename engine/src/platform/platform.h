@@ -9,7 +9,7 @@ namespace Mango {
 
 	struct InternalState; // defined per platform
 
-	struct AppAttribs {
+	struct AppConfig {
 		const char* title;
 
 		u32 x;
@@ -17,7 +17,7 @@ namespace Mango {
 		u32 width;
 		u32 height;
 
-		AppAttribs(const char* app_name = "Mango Engine",
+		AppConfig(const char* app_name = "Mango Engine",
 			u32 x = 0,
 			u32 y = 0,
 			u32 w = 1280,
@@ -26,36 +26,36 @@ namespace Mango {
 		{}
 	};
 
-	class PlatformState {
-
-		friend class Application;
-		
+	class Platform {
 		public:
-			b8	 is_running();
-			b8	 startup(const AppAttribs& attribs = AppAttribs());
+			~Platform() {};
+			Platform() {};
+
+			b8 is_running();
+			b8 startup(const AppConfig& attribs = AppConfig());
 			void shutdown();
 
 			// returns a quit request boolean
 			b8 pump_message();
 
-			void* allocate(u64 size, b8 aligned);
-			void  free(void* block, b8 aligned);
-			void* zero_memory(void* block, u64 size);
-			void* copy_memory(void* dest, void* source, u64 size);
-			void* set_memory(void* dest, i32 value, u64 size);
+
+			// platform specific memory management and utilities
+
+			MGO_API static void* allocate(u64 size, b8 aligned);
+			MGO_API static void  free(void* block, b8 aligned);
+			static void* zero_memory(void* block, u64 size);
+			static void* copy_memory(void* dest, void* source, u64 size);
+			static void* set_memory(void* dest, i32 value, u64 size);
 
 			static void console_write(const char* message, log_level color);
 			static void console_write_error(const char* message, log_level color);
 
-			f64 get_absolute_time();
+			static f64 get_absolute_time();
 
-			void sleep(u64 ms);
+			static void sleep(u64 ms);
 		
-		protected:
-			PlatformState();
-			~PlatformState();
-
-			InternalState* state_ = nullptr;
+		private:
+			void* internal_state_ = nullptr;
 	};
 
 

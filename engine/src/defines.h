@@ -20,7 +20,10 @@ namespace Mango {
 
     // Boolean types.
     using b32 = int;
-    using b8  = bool;
+    using b8  = char;
+
+    #define TRUE  1
+    #define FALSE 0
 
     static_assert(sizeof(u8)  == 1, "u8 must be 1 byte");
     static_assert(sizeof(u16) == 2, "u16 must be 2 bytes");
@@ -34,6 +37,9 @@ namespace Mango {
 
     static_assert(sizeof(f32) == 4, "f32 must be 4 bytes");
     static_assert(sizeof(f64) == 8, "f64 must be 8 bytes");
+
+    static_assert(sizeof(b8)  == 1, "b8 must be 1 byte");
+    static_assert(sizeof(b32) == 4, "b32 must be 4 bytes");
 
 
     #define BIT(x) 1 << x

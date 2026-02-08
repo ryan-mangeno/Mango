@@ -32,41 +32,35 @@ namespace Mango {
 
     static f64 start_time = 0;
 
-    PlatformState::PlatformState() {
-        
-    }
+    b8 Platform::is_running() { return !static_cast<InternalState*>(internal_state_)->quit_requested; }
 
-    PlatformState::~PlatformState() {
+    b8 Platform::startup(const AppConfig& config) {
 
-    }
+        internal_state_ = (malloc(sizeof(InternalState)));
 
-    b8 PlatformState::is_running() { return !state_->quit_requested; }
+        InternalState* state = static_cast<InternalState*>(internal_state_);
 
-    b8 PlatformState::startup(const AppAttribs& attribs) {
-
-        state_ = static_cast<InternalState*>(malloc(sizeof(InternalState)));
-
-        if (!state_) {
-            return false;
+        if (!state) {
+            return FALSE;
         }
 
-        zero_memory(state_, sizeof(InternalState));
-        state_->quit_requested = false;
+        zero_memory(state, sizeof(InternalState));
+        state->quit_requested = FALSE;
 
-        state_->delegate = [[AppleWindowDelegate alloc] init]; 
-        if (!state_->delegate) {
-            return false;
+        state->delegate = [[AppleWindowDelegate alloc] init]; 
+        if (!state->delegate) {
+            return FALSE;
         }
-        state_->delegate.quit_flag = &state_->quit_requested;
+        state->delegate.quit_flag = &state->quit_requested;
 
-        state_->input_view = [[AppleInputView alloc] init];
-        if (!state_->input_view) {
-            return false;
+        state->input_view = [[AppleInputView alloc] init];
+        if (!state->input_view) {
+            return FALSE;
         }
 
         // initializes app singleton
         if (![NSApplication sharedApplication]) {
-            return false;
+            return FALSE;
         }
         
         MGO_ASSERT_MSG([NSThread isMainThread], "app must exist on the main thread!");
@@ -78,30 +72,30 @@ namespace Mango {
                          NSWindowStyleMaskClosable | 
                          NSWindowStyleMaskMiniaturizable | 
                          NSWindowStyleMaskResizable;
-        NSRect frame = NSMakeRect(attribs.x, attribs.y, attribs.width, attribs.height);
+        NSRect frame = NSMakeRect(config.x, config.y, config.width, config.height);
         
-        state_->window = [[NSWindow alloc] initWithContentRect:frame
+        state->window = [[NSWindow alloc] initWithContentRect:frame
                                           styleMask:style_mask
                                           backing:NSBackingStoreBuffered
                                           defer:NO];
         
-        if (!state_->window) {
-            return false;
+        if (!state->window) {
+            return FALSE;
         }
 
-        [state_->window setTitle:[NSString stringWithUTF8String:attribs.title]];
+        [state->window setTitle:[NSString stringWithUTF8String:config.title]];
 
         // tells macos to render window and bring to front
-        [state_->window makeKeyAndOrderFront:nil];
+        [state->window makeKeyAndOrderFront:nil];
 
         // register delegate with window
-        [state_->window setDelegate:state_->delegate];
+        [state->window setDelegate:state->delegate];
 
         // register input view
-        [state_->window setContentView:state_->input_view];
-        [state_->window makeFirstResponder:state_->input_view];
+        [state->window setContentView:state->input_view];
+        [state->window makeFirstResponder:state->input_view];
         // enable mouse moves which is disabled by default
-        [state_->window setAcceptsMouseMovedEvents:YES];
+        [state->window setAcceptsMouseMovedEvents:YES];
 
 
         // signals done with setup
@@ -110,28 +104,29 @@ namespace Mango {
 
         start_time = get_absolute_time();
 
-        return true;
+        return TRUE;
     }
 
-    void PlatformState::shutdown() {
+    void Platform::shutdown() {
+        InternalState* state = static_cast<InternalState*>(internal_state_);
 
-        if (state_->window) {
-            [state_->window setDelegate:nil]; // Prevent delegate callbacks during teardown
-            [state_->window close];           // This hides and potentially releases
-            state_->window = nullptr;       
+        if (state->window) {
+            [state->window setDelegate:nil]; // Prevent delegate callbacks during teardown
+            [state->window close];           // This hides and potentially releases
+            state->window = nullptr;       
         }
 
-        [state_->delegate release]; // safe if nullptr
-        [state_->input_view release]; // same here
+        [state->delegate release]; // safe if nullptr
+        [state->input_view release]; // same here
 
-        state_->delegate = nullptr;
-        state_->input_view = nullptr;
+        state->delegate = nullptr;
+        state->input_view = nullptr;
 
-        // NOTE: c free not platformstate::free 
-        ::free(state_);
+        // NOTE: c free not Platform::free 
+        ::free(internal_state_);
     }
 
-    b8 PlatformState::pump_message() {
+    b8 Platform::pump_message() {
 
         // auto release pool needs to be made since events creating
         // during pump can leak memory
@@ -150,30 +145,30 @@ namespace Mango {
             }
         }
 
-        return state_->quit_requested;
+        return static_cast<InternalState*>(internal_state_)->quit_requested;
     }
 
-    void* PlatformState::allocate(u64 size, b8 aligned) {
+    void* Platform::allocate(u64 size, b8 aligned) {
         return malloc(size); // TODO: add aligned logic
     }   
 
-    void PlatformState::free(void* block, b8 aligned) {
+    void Platform::free(void* block, b8 aligned) {
         ::free(block); // TODO: add aligned logic
     }
 
-    void* PlatformState::zero_memory(void* block, u64 size) {
+    void* Platform::zero_memory(void* block, u64 size) {
         return memset(block, 0, size);
     }
 
-    void* PlatformState::copy_memory(void* dest, void* source, u64 size) {
+    void* Platform::copy_memory(void* dest, void* source, u64 size) {
         return memcpy(dest, source, size);
     }
 
-    void* PlatformState::set_memory(void* dest, i32 value, u64 size) {
+    void* Platform::set_memory(void* dest, i32 value, u64 size) {
         return memset(dest, value, size);
     }   
 
-    void PlatformState::console_write(const char* message, log_level color) {
+    void Platform::console_write(const char* message, log_level color) {
         static const char* levels[6] = {
         "\033[41m", // FATAL (White on Red background)
         "\033[31m", // ERROR (Red text)
@@ -187,11 +182,11 @@ namespace Mango {
 
         // TODO: should look into templating for converting log_level to i8 statically
         // but since its just logging primarily for debug
-        fprintf(stdout, "%s%s%s", levels[static_cast<int>(color)], message, reset);
+        fprintf(stdout, "%s%s%s\n", levels[static_cast<int>(color)], message, reset);
         fflush(stdout);
     }
 
-    void PlatformState::console_write_error(const char* message, log_level color) {
+    void Platform::console_write_error(const char* message, log_level color) {
         static const char* levels[6] = {
             "\033[41m", // FATAL 
             "\033[31m", // ERROR 
@@ -203,11 +198,11 @@ namespace Mango {
         
         const char* reset = "\033[0m";
 
-        fprintf(stderr, "%s%s%s", levels[static_cast<int>(color)], message, reset);
+        fprintf(stderr, "%s%s%s\n", levels[static_cast<int>(color)], message, reset);
         fflush(stderr);
     }
 
-    f64 PlatformState::get_absolute_time() {
+    f64 Platform::get_absolute_time() {
         struct timespec now;
         clock_gettime(CLOCK_MONOTONIC, &now);
         f64 now_time = static_cast<f64>(now.tv_sec) + static_cast<f64>(now.tv_nsec) * static_cast<f64>(1e-9);
@@ -215,7 +210,7 @@ namespace Mango {
         return now_time - start_time;
     }
 
-    void PlatformState::sleep(u64 ms) {
+    void Platform::sleep(u64 ms) {
         struct timespec ts;
         ts.tv_sec  = ms / static_cast<u64>(1e3);
         ts.tv_nsec = (ms % static_cast<u64>(1e3)) * static_cast<f64>(1e6);
@@ -230,7 +225,7 @@ namespace Mango {
 @implementation AppleWindowDelegate
 - (void)windowWillClose:(NSNotification *)notification {
     if (self.quit_flag) {
-        *(self.quit_flag) = true; 
+        *(self.quit_flag) = TRUE; 
     }
 }
 

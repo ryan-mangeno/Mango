@@ -41,12 +41,12 @@ namespace Mango {
         va_start(args, message);
         vsnprintf(message_buffer, sizeof(message_buffer), message, args);
         va_end(args);
-        snprintf(final_buffer, sizeof(final_buffer), "%s%s\n", level_str, message_buffer);
+        snprintf(final_buffer, sizeof(final_buffer), "%s%s", level_str, message_buffer);
         
         if (is_err) {
-            PlatformState::console_write(final_buffer, level);
+            Platform::console_write(final_buffer, level);
         } else {
-            PlatformState::console_write_error(final_buffer, level);
+            Platform::console_write_error(final_buffer, level);
         }
     }
 } // namespace Mango

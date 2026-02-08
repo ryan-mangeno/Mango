@@ -2,7 +2,7 @@
 #ifdef ENTRY_H 
     static_assert(false, "Entry point defined multiple times!")
 #else 
-    #define ENTRY_H
+#define ENTRY_H
 
 #include "core/logger.h"
 #include "core/application.h"
@@ -25,6 +25,10 @@ int main(int argc, char** argv) {
     }
     
     Mango::Application app;
+    if (!app.create_app(&game_inst)) {
+        MGO_FATAL("failed to create application!");
+        return 1;
+    }
     app.run();
 
     return 0;
