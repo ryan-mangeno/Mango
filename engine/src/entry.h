@@ -7,13 +7,16 @@
 #include "core/logger.h"
 #include "core/application.h"
 #include "game_types.h"
+#include "core/mgmemory.h"
 
 // defined by client
-extern Mango::b8 create_game(Mango::game* out_game);
+extern b8 create_game(game* out_game);
 
 int main(int argc, char** argv) {
 
-    Mango::game game_inst;
+    mg_initialize_memory();
+
+    game game_inst;
     if (!create_game(&game_inst)) {
         MGO_FATAL("failed to create game!");
         return -1;
@@ -24,12 +27,14 @@ int main(int argc, char** argv) {
         return -2;
     }
     
-    Mango::Application app;
+    Application app;
     if (!app.create_app(&game_inst)) {
         MGO_FATAL("failed to create application!");
         return 1;
     }
     app.run();
+
+    mg_shutdown_memory();
 
     return 0;
 }

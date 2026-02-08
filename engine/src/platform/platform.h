@@ -5,58 +5,53 @@
 
 // #include <stdx/functional.h>
 
-namespace Mango {
+struct InternalState; // defined per platform
 
-	struct InternalState; // defined per platform
+struct AppConfig {
+	const char* title;
 
-	struct AppConfig {
-		const char* title;
+	u32 x;
+	u32 y;
+	u32 width;
+	u32 height;
 
-		u32 x;
-		u32 y;
-		u32 width;
-		u32 height;
+	AppConfig(const char* app_name = "Mango Engine",
+		u32 x = 0,
+		u32 y = 0,
+		u32 w = 1280,
+		u32 h = 720)
+		: title(app_name), width(w), height(h), x(x), y(y)
+	{}
+};
 
-		AppConfig(const char* app_name = "Mango Engine",
-			u32 x = 0,
-			u32 y = 0,
-			u32 w = 1280,
-			u32 h = 720)
-			: title(app_name), width(w), height(h), x(x), y(y)
-		{}
-	};
+class Platform {
+	public:
+		~Platform() {};
+		Platform() {};
 
-	class Platform {
-		public:
-			~Platform() {};
-			Platform() {};
+		b8 is_running();
+		b8 startup(const AppConfig& attribs = AppConfig());
+		void shutdown();
 
-			b8 is_running();
-			b8 startup(const AppConfig& attribs = AppConfig());
-			void shutdown();
-
-			// returns a quit request boolean
-			b8 pump_message();
+		// returns a quit request boolean
+		b8 pump_message();
 
 
-			// platform specific memory management and utilities
+		// platform specific memory management and utilities
 
-			MGO_API static void* allocate(u64 size, b8 aligned);
-			MGO_API static void  free(void* block, b8 aligned);
-			static void* zero_memory(void* block, u64 size);
-			static void* copy_memory(void* dest, void* source, u64 size);
-			static void* set_memory(void* dest, i32 value, u64 size);
+		static void* allocate(u64 size, b8 aligned);
+		static void  free(void* block, b8 aligned);
+		static void* zero_memory(void* block, u64 size);
+		static void* copy_memory(void* dest, void* source, u64 size);
+		static void* set_memory(void* dest, i32 value, u64 size);
 
-			static void console_write(const char* message, log_level color);
-			static void console_write_error(const char* message, log_level color);
+		static void console_write(const char* message, log_level color);
+		static void console_write_error(const char* message, log_level color);
 
-			static f64 get_absolute_time();
+		static f64 get_absolute_time();
 
-			static void sleep(u64 ms);
-		
-		private:
-			void* internal_state_ = nullptr;
-	};
-
-
-}
+		static void sleep(u64 ms);
+	
+	private:
+		void* internal_state_ = nullptr;
+};

@@ -2,9 +2,8 @@
 
 #include <entry.h>
 
-#include <platform/platform.h> // TODO: remove this
+#include <core/mgmemory.h>
 
-using namespace Mango;
 
 b8 create_game(game* out_game) {
 
@@ -15,7 +14,8 @@ b8 create_game(game* out_game) {
     out_game->on_resize = on_resize;
     out_game->update = update;
 
-    out_game->state_ = Platform::allocate(sizeof(game_state), FALSE);
+    out_game->state_ = mg_allocate(sizeof(game_state), MEMORY_TAG_GAME);
+    //out_game->state_ = mg_placement_new<game_state>(MEMORY_TAG_GAME);  TODO: testing with placement new
 
     return TRUE;
 }
