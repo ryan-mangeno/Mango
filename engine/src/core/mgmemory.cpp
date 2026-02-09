@@ -67,6 +67,18 @@ void mg_free(void* block, u64 size, memory_tag tag) {
     Platform::free(block, FALSE);
 }
 
+void* mg_zero_memory(void* block, u64 size) {
+    return Platform::zero_memory(block, size);
+}
+
+void* mg_copy_memory(void* dest, const void* source, u64 size) {
+    return Platform::copy_memory(dest, source, size);
+}
+
+void* mg_set_memory(void* dest, i32 value, u64 size) {
+    return Platform::set_memory(dest, value, size);
+}
+
 char* mg_get_memory_usage_str() {
     const u64 gib = 1024ull * 1024ull * 1024ull;
     const u64 mib = 1024ull * 1024ull;

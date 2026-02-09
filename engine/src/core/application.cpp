@@ -2,14 +2,14 @@
 
 #include <core/logger.h>
 #include <core/assert.h>
-
 #include <utility/type_traits.h>
-
 #include <game_types.h>
-
 #include <core/mgmemory.h>
 
+#include <containers/darray.h>
+
 static b8 initialized_ = false;
+
 
 b8 Application::create_app(game* game_inst) {
     MGO_ASSERT_MSG(!initialized_, "application already initialized!");

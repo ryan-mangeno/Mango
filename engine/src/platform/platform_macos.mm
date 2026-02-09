@@ -159,7 +159,7 @@ void* Platform::zero_memory(void* block, u64 size) {
     return memset(block, 0, size);
 }
 
-void* Platform::copy_memory(void* dest, void* source, u64 size) {
+void* Platform::copy_memory(void* dest, const void* source, u64 size) {
     return memcpy(dest, source, size);
 }
 

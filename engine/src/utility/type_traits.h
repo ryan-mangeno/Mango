@@ -25,7 +25,7 @@ constexpr T&& forward(remove_reference_t<T>& t) noexcept {
 
 // --- std::enable_if ---
 template<b8 B, typename T = void> struct enable_if {};
-template<typename T>                struct enable_if<TRUE, T> { using type = T; };
+template<typename T>              struct enable_if<TRUE, T> { using type = T; };
 template<b8 B, typename T = void> using  enable_if_t = typename enable_if<B, T>::type;
 
 // --- std::decay ---
@@ -41,8 +41,8 @@ template<typename T>             struct is_same<T, T> { static constexpr b8 valu
 
 
 // --- std::is_trivial ---
-template<typename T>
-struct is_trivial  { static constexpr b8 value = __is_trivial(T) == TRUE; };
+template<typename T> struct is_trivial  { static constexpr b8 value = __is_trivial(T) == TRUE; };
+template<typename T> static constexpr b8 is_trivial_v = is_trivial<T>::value;
 
 // allows overriding of new and delete ops so I can use my own with placement new
 inline void* operator new(unsigned long, void* ptr) noexcept { 

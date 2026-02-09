@@ -61,7 +61,7 @@ MGO_API T* mg_placement_construct(void* mem, memory_tag tag, Args&&... args) {
     return new (mem) T(forward<Args>(args)...); 
 }
 
-// destructor if objects were allocated with placement new, ~T will not be called for you other wise
+// destructor helper if objects were allocated with placement new, ~T will not be called for you other wise
 template<typename T>
 MGO_API void mg_placement_delete(T* ptr, memory_tag tag) {
     if (tag == MEMORY_TAG_UNKNOWN) {

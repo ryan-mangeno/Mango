@@ -8,7 +8,7 @@ mkdir -p ../bin
 sourceFiles=$(find . -type f \( -name "*.cpp" -o -name "*.mm" \))
 
 assembly="engine"
-compilerFlags="-g -dynamiclib -fdeclspec -fPIC -fvisibility=hidden"
+compilerFlags="-g -dynamiclib -fdeclspec -fPIC -fvisibility=hidden -std=c++17"
 includeFlags="-Isrc -I$VULKAN_SDK/include"
 linkerFlags="-lvulkan -L$VULKAN_SDK/lib -Wl,-rpath,$VULKAN_SDK/lib -framework Cocoa -framework QuartzCore"
 defines="-D_DEBUG -DMGO_EXPORT"
