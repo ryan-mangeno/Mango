@@ -27,6 +27,9 @@ struct EventContext {
 // should return true if handled
 using EventCallback = b8 (*)(u16 code, void* sender, void* listener, EventContext context);
 
+b8 event_initialize();
+void event_shutdown();
+
 // returns true if successful registration, false if failed 
 MGO_API b8 event_register(u16 code, void* listener, EventCallback callback);
 
@@ -36,53 +39,54 @@ MGO_API b8 event_unregister(u16 code, void* listener, EventCallback callback);
 MGO_API b8 event_trigger(u16 code, void* sender, EventContext context);
 
 
-typedef enum system_event_code {
+enum system_event_code {
     // Shuts the application down on the next frame.
-    EVENT_CODE_APPLICATION_QUIT = 0x01,
+    EVENT_CODE_APPLICATION_QUIT = 1,
 
     // Keyboard key pressed.
     /* Context usage:
      * u16 key_code = data.data.u16[0];
      */
-    EVENT_CODE_KEY_PRESSED = 0x02,
+    EVENT_CODE_KEY_PRESSED = 2,
 
     // Keyboard key released.
     /* Context usage:
      * u16 key_code = data.data.u16[0];
      */
-    EVENT_CODE_KEY_RELEASED = 0x03,
+    EVENT_CODE_KEY_RELEASED = 3,
 
     // Mouse button pressed.
     /* Context usage:
      * u16 button = data.data.u16[0];
      */
-    EVENT_CODE_BUTTON_PRESSED = 0x04,
+    EVENT_CODE_BUTTON_PRESSED = 4,
 
     // Mouse button released.
     /* Context usage:
      * u16 button = data.data.u16[0];
      */
-    EVENT_CODE_BUTTON_RELEASED = 0x05,
+    EVENT_CODE_BUTTON_RELEASED = 5,
 
     // Mouse moved.
     /* Context usage:
      * u16 x = data.data.u16[0];
      * u16 y = data.data.u16[1];
      */
-    EVENT_CODE_MOUSE_MOVED = 0x06,
+    EVENT_CODE_MOUSE_MOVED = 6,
 
     // Mouse moved.
     /* Context usage:
      * u8 z_delta = data.data.u8[0];
      */
-    EVENT_CODE_MOUSE_WHEEL = 0x07,
+    EVENT_CODE_MOUSE_WHEEL = 7,
 
     // Resized/resolution changed from the OS.
     /* Context usage:
      * u16 width = data.data.u16[0];
      * u16 height = data.data.u16[1];
      */
-    EVENT_CODE_RESIZED = 0x08,
+    EVENT_CODE_RESIZED = 8,
 
-    MAX_EVENT_CODE = 0xFF
-} system_event_code;
+    
+    MAX_EVENT_CODES = 255
+};

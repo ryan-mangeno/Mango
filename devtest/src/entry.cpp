@@ -15,7 +15,6 @@ b8 create_game(game* out_game) {
     out_game->update = update;
 
     out_game->state_ = mg_allocate(sizeof(game_state), MEMORY_TAG_GAME);
-    //out_game->state_ = mg_placement_new<game_state>(MEMORY_TAG_GAME);  TODO: testing with placement new
 
     return TRUE;
 }

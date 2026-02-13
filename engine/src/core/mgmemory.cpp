@@ -52,6 +52,7 @@ void* mg_allocate(u64 size, memory_tag tag) {
     // TODO: memory alignment
     void* block = Platform::allocate(size, FALSE);
     Platform::zero_memory(block, size);
+
     return block;
 }
 

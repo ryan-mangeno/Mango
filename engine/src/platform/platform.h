@@ -36,7 +36,6 @@ class Platform {
 		// returns a quit request boolean
 		b8 pump_message();
 
-
 		// platform specific memory management and utilities
 
 		static void* allocate(u64 size, b8 aligned);

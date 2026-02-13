@@ -53,7 +53,7 @@ MGO_API T* mg_placement_new(memory_tag tag, Args&&... args) {
 
 // constructs object inplace in memory
 template<typename T, typename... Args>
-MGO_API T* mg_placement_construct(void* mem, memory_tag tag, Args&&... args) {
+MGO_API T* mg_placement_construct(T* mem, memory_tag tag, Args&&... args) {
     if (tag == MEMORY_TAG_UNKNOWN) {
         MGO_WARN("Freeing memory with unknown tag. Reclass this allocation");
     }

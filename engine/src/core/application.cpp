@@ -7,9 +7,9 @@
 #include <core/mgmemory.h>
 
 #include <containers/darray.h>
+#include "event.h"
 
 static b8 initialized_ = false;
-
 
 b8 Application::create_app(game* game_inst) {
     MGO_ASSERT_MSG(!initialized_, "application already initialized!");
@@ -39,6 +39,8 @@ b8 Application::create_app(game* game_inst) {
         app_state_.platform_state_.shutdown();
         return FALSE;
     }
+
+    event_initialize();
 
     // app_state.game_inst_->on_resize(app_state_.width_, app_state_.height_); TODO: 
 
@@ -82,5 +84,6 @@ void Application::run() {
 
     MGO_INFO("Shutting Down!");
     state.shutdown();
+    event_shutdown();
 }
 

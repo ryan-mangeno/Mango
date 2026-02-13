@@ -5,23 +5,28 @@
 #include <defines.h>
 #include <core/mgmemory.h>
 
+
 template<typename T>
 class MGO_API darray {
     public:
-        darray() noexcept : elements_(nullptr), capacity_(0), length_(0), stride_(sizeof(T)) {}
+        darray() noexcept : elements_(nullptr), capacity_(0), length_(0) {
+        }
 
-        darray(u64 length, u64 capacity) noexcept : capacity_(capacity), length_(length), stride_(sizeof(T)) {
-            elements_ = static_cast<T*>(mg_allocate(capacity_ * stride_, MEMORY_TAG_DARRAY));
+        darray(u64 length, u64 capacity) noexcept : capacity_(capacity), length_(length) {
+            elements_ = static_cast<T*>(mg_allocate(capacity_ * sizeof(T), MEMORY_TAG_DARRAY));
+            for (u64 i=0 ; i<length_ ; ++i) {
+                mg_placement_construct(&elements_[i], MEMORY_TAG_DARRAY);
+            }
         }
 
         ~darray() {
             if (elements_) {
                 if constexpr (!is_trivial_v<T>) {
-                    for (u64 i = 0; i < length_; ++i) {
+                    for (u64 i=0 ; i<length_; ++i) {
                         elements_[i].~T(); // we only destroy the object, the block is freed below
                     }
                 }
-                mg_free(elements_, capacity_ * stride_, MEMORY_TAG_DARRAY);
+                mg_free(elements_, capacity_ * sizeof(T), MEMORY_TAG_DARRAY);
                 elements_ = nullptr;
             }
         }
@@ -31,7 +36,7 @@ class MGO_API darray {
             if (length_ == capacity_) {
                 grow();
             } 
-            mg_placement_construct<T>(&elements_[length_], MEMORY_TAG_DARRAY, forward<Args>(args)...);
+            mg_placement_construct(&elements_[length_], MEMORY_TAG_DARRAY, forward<Args>(args)...);
             length_++;
         }
 
@@ -41,9 +46,9 @@ class MGO_API darray {
                 grow();
             }
             if constexpr (is_trivial_v<T>) {
-                mg_copy_memory(&elements_[length_], &element, stride_);
+                mg_copy_memory(&elements_[length_], &element, sizeof(T));
             } else {
-                mg_placement_construct<T>(&elements_[length_], MEMORY_TAG_DARRAY, forward<U>(element));
+                mg_placement_construct(&elements_[length_], MEMORY_TAG_DARRAY, forward<U>(element));
             }
             length_++;
         }
@@ -54,7 +59,7 @@ class MGO_API darray {
                 grow();
             }
             
-            for (i32 i = length_; i > index; i--) {
+            for (i32 i=length_; i>index; --i) {
                 if constexpr (is_trivial_v<T>) {
                     elements_[i] = elements_[i - 1];
                 } else {
@@ -62,7 +67,7 @@ class MGO_API darray {
                     if (i < length_) {
                         elements_[i].~T();
                     }
-                    mg_placement_construct<T>(&elements_[i], MEMORY_TAG_DARRAY, move(elements_[i - 1]));
+                    mg_placement_construct(&elements_[i], MEMORY_TAG_DARRAY, move(elements_[i - 1]));
                 }
             }
             
@@ -77,7 +82,7 @@ class MGO_API darray {
             if constexpr (is_trivial_v<T>) {
                 mg_copy_memory(&elements_[index], &element, sizeof(T));
             } else {
-                mg_placement_construct<T>(&elements_[index], MEMORY_TAG_DARRAY, forward<U>(element));
+                mg_placement_construct(&elements_[index], MEMORY_TAG_DARRAY, forward<U>(element));
             }
             
             length_++;
@@ -95,18 +100,18 @@ class MGO_API darray {
         inline void resize(u64 new_capacity) {
             if (new_capacity <= capacity_) return;
 
-            T* new_elements = static_cast<T*>(mg_allocate(new_capacity * stride_, MEMORY_TAG_DARRAY));
+            T* new_elements = static_cast<T*>(mg_allocate(new_capacity * sizeof(T), MEMORY_TAG_DARRAY));
             
             if (elements_) {
                 if constexpr (is_trivial_v<T>) {
-                    mg_copy_memory(new_elements, elements_, length_ * stride_);
+                    mg_copy_memory(new_elements, elements_, length_ * sizeof(T));
                 } else {
-                    for (u64 i = 0; i < length_; ++i) {
-                        mg_placement_construct<T>(&new_elements[i], MEMORY_TAG_DARRAY, move(elements_[i]));
+                    for (u64 i=0; i<length_; ++i) {
+                        mg_placement_construct(&new_elements[i], MEMORY_TAG_DARRAY, move(elements_[i]));
                         elements_[i].~T();
                     }
                 }
-                mg_free(elements_, capacity_ * stride_, MEMORY_TAG_DARRAY);
+                mg_free(elements_, capacity_ * sizeof(T), MEMORY_TAG_DARRAY);
             }
             
             elements_ = new_elements;
@@ -133,5 +138,4 @@ class MGO_API darray {
         T* elements_;
         u64 capacity_;
         u64 length_;
-        u64 stride_;
 };
