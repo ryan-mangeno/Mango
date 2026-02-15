@@ -4,7 +4,7 @@
 #include <defines.h>
 
 struct EventContext {
-    // 128 bytes
+    // 16 bytes
     union {
         i64 i64[2];
         u64 u64[2];

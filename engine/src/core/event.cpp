@@ -63,12 +63,13 @@ b8 event_unregister(u16 code, void* listener, EventCallback callback) {
         return FALSE;
     }   
 
-    if (state_.registered_[code].events_.size() == 0) {
+    u64 count = state_.registered_[code].events_.size();
+
+    if (count == 0) {
         // TODO: warn
         return FALSE;
     }
 
-    u64 count = state_.registered_[code].events_.size();
     for (u64 i=0 ; i<count ; ++i) {
         const registered_event& e = state_.registered_[code].events_[i];
         if (e.listener_ == listener && e.callback_ == callback) {
@@ -78,5 +79,28 @@ b8 event_unregister(u16 code, void* listener, EventCallback callback) {
     }
 
     // Not found
+    return FALSE;
+}
+
+b8 event_trigger(u16 code, void* sender, EventContext ctx) {
+    if (is_inialized_ == FALSE) {
+        return FALSE;
+    }
+
+    u64 count = state_.registered_[code].events_.size();
+
+    if (count == 0) {
+        // TODO: warn
+        return FALSE;
+    }
+
+    for (u64 i=0 ; i<count ; ++i) {
+        const registered_event& e = state_.registered_[code].events_[i];
+        // allow callbacks to stop propogation to other listeners
+        if (e.callback_(code, e.listener_, sender, ctx)) {
+            return TRUE;
+        }
+    }
+
     return FALSE;
 }
