@@ -10,7 +10,7 @@
 #include "core/mgmemory.h"
 
 // defined by client
-extern b8 create_game(game* out_game);
+b8 create_game(game* out_game);
 
 int main(int argc, char** argv) {
 

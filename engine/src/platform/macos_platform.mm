@@ -1,37 +1,20 @@
-#include "platform.h"
-
-#include <core/assert.h>
-#include <core/logger.h>
+#include <defines.h>
 
 #if MGO_PLATFORM_APPLE
 
-#import <Cocoa/Cocoa.h> 
+#include "platform.h"
+#include "macos_internals.h"
+
+#include <core/assert.h>
+#include <core/logger.h>
 
 #include <stdlib.h>
 #include <time.h>
 
 
-// input handling and delegates at the bottom
-@interface AppleWindowDelegate : NSObject <NSWindowDelegate>
-@property (assign) b8* quit_flag;
-@end
-
-@interface AppleInputView : NSView
-// TODO: add properties potentially
-@end
-
-
-
-struct InternalState {
-    NSWindow* window;
-    AppleWindowDelegate* delegate;
-    AppleInputView* input_view;
-    b8 quit_requested;
-};
-
 static f64 start_time = 0;
 
-b8 Platform::is_running() { return !static_cast<InternalState*>(internal_state_)->quit_requested; }
+b8 Platform::is_running() { return !internal_state_->quit_requested; }
 
 b8 Platform::startup(const AppConfig& config) {
 
@@ -53,7 +36,7 @@ b8 Platform::startup(const AppConfig& config) {
     }
     state->delegate.quit_flag = &state->quit_requested;
 
-    state->input_view = [[AppleInputView alloc] init];
+    state->input_view = create_apple_input();
     if (!state->input_view) {
         return FALSE;
     }
@@ -78,6 +61,7 @@ b8 Platform::startup(const AppConfig& config) {
                                         styleMask:style_mask
                                         backing:NSBackingStoreBuffered
                                         defer:NO];
+    [state->window setReleasedWhenClosed:NO];
     
     if (!state->window) {
         return FALSE;
@@ -113,6 +97,7 @@ void Platform::shutdown() {
     if (state->window) {
         [state->window setDelegate:nil]; // Prevent delegate callbacks during teardown
         [state->window close];           // This hides and potentially releases
+        [state->window release];
         state->window = nullptr;       
     }
 
@@ -146,7 +131,7 @@ b8 Platform::pump_message() {
         }
     }
 
-    return static_cast<InternalState*>(internal_state_)->quit_requested;
+    return internal_state_->quit_requested;
 }
 
 void* Platform::allocate(u64 size, b8 aligned) {
@@ -232,39 +217,12 @@ void Platform::sleep(u64 ms) {
 - (void)windowDidResize:(NSNotification *)notification {
     // TODO: handle new dims     
 }
-@end
 
-
-@implementation AppleInputView
-// required for keyboard input to work
-- (BOOL)acceptsFirstResponder { return YES; }
-- (BOOL)canBecomeKeyView { return YES; }
-
-- (void)keyDown:(NSEvent *)event {
-    // u16 key_code = [event keyCode];
-    // TODO: Input system fire key_pressed
-}
-
-- (void)keyUp:(NSEvent *)event {
-    // TODO: Input system fire key_released, same for rest 
-}
-
-- (void)mouseDown:(NSEvent *)event { /* Left */ 
-}
-
-- (void)rightMouseDown:(NSEvent *)event { /* Right */ 
-}
-
-- (void)mouseUp:(NSEvent *)event { 
-}
-
-- (void)mouseMoved:(NSEvent *)event {
-    // NSPoint location = [event locationInWindow];
-}
-
-- (void)scrollWheel:(NSEvent *)event {
-    // f32 delta_y = [event scrollingDeltaY];
+- (void)dealloc {
+    MGO_WARN("AppleWindowDelegate is being DEALLOCATED (freed from memory)!");
+    [super dealloc];
 }
 @end
+
 
 #endif
