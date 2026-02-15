@@ -21,9 +21,10 @@ static LARGE_INTEGER start_time;
 b8 Platform::is_running() { return TRUE; }
 
 b8 Platform::startup(const AppConfig& attribs) {
-    internal_state_ = malloc(sizeof(InternalState));     
+    
+    internal_state_ = static_cast<InternalState*>(malloc(sizeof(InternalState)));
 
-    InternalState* state = static;
+    InternalState* state = internal_state_;
     
     state->h_instance = GetModuleHandle(0);
 

@@ -3,6 +3,11 @@
 
 #include <containers/darray.h>
 
+// TODO: 1. this can be multi threaded 
+//       2. maybe add priority 
+//       3. we can set a limit on how many events fired per frame ( event queue ) 
+//          ... jobified
+
 struct registered_event {
     void* listener_;
     EventCallback callback_;
@@ -82,7 +87,7 @@ b8 event_unregister(u16 code, void* listener, EventCallback callback) {
     return FALSE;
 }
 
-b8 event_trigger(u16 code, void* sender, EventContext ctx) {
+b8 event_fire(u16 code, void* sender, EventContext ctx) {
     if (is_inialized_ == FALSE) {
         return FALSE;
     }

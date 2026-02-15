@@ -28,19 +28,22 @@ b8 Application::create_app(game* game_inst) {
     app_state_.is_running_ = FALSE;
     app_state_.is_suspended_ = FALSE;
 
-    if (!app_state_.platform_state_.startup(game_inst->app_config_)) {
+    if (!event_initialize()) {
+        MGO_ERROR("Event system failed to initialize, application can't continue ...");
+        return FALSE;
+    }
+
+    app_state_.platform_state_ = mg_placement_new<Platform>(MEMORY_TAG_APPLICATION);
+
+    if (!app_state_.platform_state_->startup(game_inst->app_config_)) {
         MGO_ERROR("Engine failed startup!");
-        app_state_.platform_state_.shutdown();
         return FALSE;
     }
 
     if (!app_state_.game_inst_->initialize(app_state_.game_inst_)) {
         MGO_ERROR("game failed to initialize!");
-        app_state_.platform_state_.shutdown();
         return FALSE;
     }
-
-    event_initialize();
 
     // app_state.game_inst_->on_resize(app_state_.width_, app_state_.height_); TODO: 
 
@@ -53,7 +56,7 @@ b8 Application::create_app(game* game_inst) {
 
 void Application::run() {
     MGO_INFO("Running ...");
-    Platform& state = app_state_.platform_state_;
+    Platform& state = *(app_state_.platform_state_);
 
     MGO_INFO(mg_get_memory_usage_str());
 
@@ -79,11 +82,24 @@ void Application::run() {
         }
     }  
 
-    // we might want to exit the loop for other reasons
     app_state_.is_running_ = FALSE;
+}
+
+
+void Application::shutdown() {
 
     MGO_INFO("Shutting Down!");
-    state.shutdown();
-    event_shutdown();
+
+    // we could've failed before initialization, event_shutdown is safe 
+    // but platform_state_ shutdown isn't if initialized_ isnt true
+    if (initialized_) {
+        event_shutdown();
+        app_state_.platform_state_->shutdown();
+    }
+
+    if( app_state_.platform_state_ ) {
+        mg_placement_delete(app_state_.platform_state_, MEMORY_TAG_APPLICATION);
+        app_state_.platform_state_ = nullptr;
+    }
 }
 

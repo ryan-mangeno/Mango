@@ -36,7 +36,8 @@ MGO_API b8 event_register(u16 code, void* listener, EventCallback callback);
 // returns true if successful unregistration, false if failed
 MGO_API b8 event_unregister(u16 code, void* listener, EventCallback callback);
 
-MGO_API b8 event_trigger(u16 code, void* sender, EventContext context);
+// returns true if event was handled, false doesnt mean failed necesarily
+MGO_API b8 event_fire(u16 code, void* sender, EventContext context);
 
 
 enum system_event_code {

@@ -35,9 +35,10 @@ b8 Platform::is_running() { return !static_cast<InternalState*>(internal_state_)
 
 b8 Platform::startup(const AppConfig& config) {
 
-    internal_state_ = (malloc(sizeof(InternalState)));
+    // TODO: replace with own allocator
+    internal_state_ = static_cast<InternalState*>(malloc(sizeof(InternalState)));
 
-    InternalState* state = static_cast<InternalState*>(internal_state_);
+    InternalState* state = internal_state_;
 
     if (!state) {
         return FALSE;
@@ -122,6 +123,7 @@ void Platform::shutdown() {
     state->input_view = nullptr;
 
     // NOTE: c free not Platform::free 
+    // TODO: replace with own allocator
     ::free(internal_state_);
 }
 

@@ -52,5 +52,5 @@ class Platform {
 		static void sleep(u64 ms);
 	
 	private:
-		void* internal_state_ = nullptr;
+		InternalState* internal_state_ = nullptr;
 };
