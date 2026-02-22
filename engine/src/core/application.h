@@ -8,13 +8,13 @@ struct game;
 
 // will grow
 struct ApplicationState {
-    b8 is_running_;
-    b8 is_suspended_;
-    i16 width_;
-    i16 height_;
-    Platform* platform_state_;
-    game* game_inst_;
-    f64 last_time_;
+    b8 is_running;
+    b8 is_suspended;
+    i16 width;
+    i16 height;
+    Platform* platform_state;
+    game* game_inst;
+    f64 last_time;
 };
 
 class Application {
@@ -34,7 +34,6 @@ class Application {
         inline const ApplicationState& get_state() {return app_state_; }
 
     private:
-
         ApplicationState app_state_;
 };
 

@@ -8,11 +8,12 @@
 
 #include <containers/darray.h>
 #include "event.h"
+#include "input.h"
 
-static b8 initialized_ = false;
+static b8 s_initialized = false;
 
 b8 Application::create_app(game* game_inst) {
-    MGO_ASSERT_MSG(!initialized_, "application already initialized!");
+    MGO_ASSERT_MSG(!s_initialized, "application already initialized!");
 
     Logger::get().initialize_logging();
     MGO_INFO("Mango Engine starting up ...");
@@ -22,67 +23,72 @@ b8 Application::create_app(game* game_inst) {
         return FALSE;
     }
 
-    app_state_.game_inst_ = game_inst;
-    app_state_.width_ = game_inst->app_config_.width;
-    app_state_.height_ = game_inst->app_config_.height;
-    app_state_.is_running_ = FALSE;
-    app_state_.is_suspended_ = FALSE;
+    app_state_.game_inst = game_inst;
+    app_state_.width = game_inst->app_config_.width;
+    app_state_.height = game_inst->app_config_.height;
+    app_state_.is_running = FALSE;
+    app_state_.is_suspended = FALSE;
+
+    if (!input_initialize()) {
+        MGO_ERROR("Input system failed to initialize, application can't continue ...");
+        return FALSE;
+    }
 
     if (!event_initialize()) {
         MGO_ERROR("Event system failed to initialize, application can't continue ...");
         return FALSE;
     }
 
-    app_state_.platform_state_ = mg_placement_new<Platform>(MEMORY_TAG_APPLICATION);
+    app_state_.platform_state = mg_placement_new<Platform>(MEMORY_TAG_APPLICATION);
 
-    if (!app_state_.platform_state_->startup(game_inst->app_config_)) {
+    if (!app_state_.platform_state->startup(game_inst->app_config_)) {
         MGO_ERROR("Engine failed startup!");
         return FALSE;
     }
 
-    if (!app_state_.game_inst_->initialize(app_state_.game_inst_)) {
+    if (!app_state_.game_inst->initialize(app_state_.game_inst)) {
         MGO_ERROR("game failed to initialize!");
         return FALSE;
     }
 
-    // app_state.game_inst_->on_resize(app_state_.width_, app_state_.height_); TODO: 
+    // app_state.game_inst->on_resize(app_state_.width_, app_state_.height_); TODO: 
 
-    app_state_.is_running_ = TRUE;
-    app_state_.is_suspended_ = FALSE;
-    initialized_ = TRUE;
+    app_state_.is_running = TRUE;
+    app_state_.is_suspended = FALSE;
+    s_initialized = TRUE;
 
     return TRUE;
 }
 
 void Application::run() {
     MGO_INFO("Running ...");
-    Platform& state = *(app_state_.platform_state_);
+    Platform& state = *(app_state_.platform_state);
 
     MGO_INFO(mg_get_memory_usage_str());
 
-    while (app_state_.is_running_) {
+    while (app_state_.is_running) {
         if (state.pump_message()) {
-            app_state_.is_running_ = FALSE;
+            app_state_.is_running = FALSE;
         }
 
-        if (!app_state_.is_suspended_) {
+        if (!app_state_.is_suspended) {
             f64 current_time = state.get_absolute_time();
-            f64 delta_time = current_time - app_state_.last_time_;
-            app_state_.last_time_ = current_time;
+            f64 delta_time = current_time - app_state_.last_time;
+            app_state_.last_time = current_time;
 
-            if (!app_state_.game_inst_->update(app_state_.game_inst_, static_cast<f32>(delta_time))) {
+            if (!app_state_.game_inst->update(app_state_.game_inst, static_cast<f32>(delta_time))) {
                 MGO_ERROR("game update failed!");
                 break;
             }
 
-            if (!app_state_.game_inst_->render(app_state_.game_inst_, static_cast<f32>(delta_time))) {
+            if (!app_state_.game_inst->render(app_state_.game_inst, static_cast<f32>(delta_time))) {
                 MGO_ERROR("game render failed!");
                 break;
             }
         }
     }  
 
-    app_state_.is_running_ = FALSE;
+    app_state_.is_running = FALSE;
 }
 
 
@@ -91,15 +97,16 @@ void Application::shutdown() {
     MGO_INFO("Shutting Down!");
 
     // we could've failed before initialization, event_shutdown is safe 
-    // but platform_state_ shutdown isn't if initialized_ isnt true
-    if (initialized_) {
+    // but platform_state shutdown isn't if initialized isnt true
+    if (s_initialized) {
+        input_shutdown();
         event_shutdown();
-        app_state_.platform_state_->shutdown();
+        app_state_.platform_state->shutdown();
     }
 
-    if( app_state_.platform_state_ ) {
-        mg_placement_delete(app_state_.platform_state_, MEMORY_TAG_APPLICATION);
-        app_state_.platform_state_ = nullptr;
+    if( app_state_.platform_state ) {
+        mg_placement_delete(app_state_.platform_state, MEMORY_TAG_APPLICATION);
+        app_state_.platform_state = nullptr;
     }
 }
 

@@ -5,13 +5,12 @@
 #include "macos_internals.h"
 #include <core/input.h>
 
-extern "C" {
-    AppleInputView* create_apple_input() {
-        return [[AppleInputView alloc] init];
-    }
+
+AppleInputView* create_apple_input() {
+    return [[AppleInputView alloc] init];
 }
 
-keys translate_keycode(u16 ns_keycode) {
+static keys translate_keycode(u16 ns_keycode) {
     switch (ns_keycode) {
         case 0x00: return KEY_A;
         case 0x0B: return KEY_B;
@@ -93,17 +92,18 @@ keys translate_keycode(u16 ns_keycode) {
     }
 }
 
+
 @implementation AppleInputView
 // required for keyboard input to work
 - (BOOL)acceptsFirstResponder { return YES; }
 - (BOOL)canBecomeKeyView { return YES; }
 
 - (void)keyDown:(NSEvent *)event {
-    // u16 key_code = [event keyCode];
     // TODO: Input system fire key_pressed
 }
 
 - (void)keyUp:(NSEvent *)event {
+    keys key_code = translate_keycode([event keyCode]);
     // TODO: Input system fire key_released, same for rest 
 }
 

@@ -2,7 +2,7 @@
 
 #include <defines.h>
 
-typedef enum buttons {
+typedef enum buttons : i32 {
     BUTTON_LEFT,
     BUTTON_RIGHT,
     BUTTON_MIDDLE,
@@ -14,7 +14,7 @@ typedef enum buttons {
 // these lineup nicely with windows keycodes
 // there is a translation table for macos
 
-typedef enum keys {
+typedef enum keys : i32 {
     DEFINE_KEY(BACKSPACE, 0x08),
     DEFINE_KEY(ENTER, 0x0D),
     DEFINE_KEY(TAB, 0x09),
@@ -145,26 +145,26 @@ typedef enum keys {
     KEYS_MAX_KEYS
 } keys;
 
-void input_initialize();
+bool input_initialize();
 void input_shutdown();
-void input_update(f64 delta_time);
+void input_update(f64 delta_time) noexcept;
 
 // keyboard input
-MGO_API b8 input_is_key_down(keys key);
-MGO_API b8 input_is_key_up(keys key);
-MGO_API b8 input_was_key_down(keys key);
-MGO_API b8 input_was_key_up(keys key);
+MGO_API b8 input_is_key_down(keys key) noexcept;
+MGO_API b8 input_is_key_up(keys key) noexcept;
+MGO_API b8 input_was_key_down(keys key) noexcept;
+MGO_API b8 input_was_key_up(keys key) noexcept;
 
-void input_process_key(keys key, b8 pressed);
+void input_process_key(keys key, b8 pressed) noexcept;
 
 // mouse input
-MGO_API b8 input_is_button_down(buttons button);
-MGO_API b8 input_is_button_up(buttons button);
-MGO_API b8 input_was_button_down(buttons button);
-MGO_API b8 input_was_button_up(buttons button);
-MGO_API void input_get_mouse_position(i32* x, i32* y);
-MGO_API void input_get_previous_mouse_position(i32* x, i32* y);
+MGO_API b8 input_is_button_down(buttons button) noexcept;
+MGO_API b8 input_is_button_up(buttons button) noexcept;
+MGO_API b8 input_was_button_down(buttons button) noexcept;
+MGO_API b8 input_was_button_up(buttons button) noexcept;
+MGO_API void input_get_mouse_position(i32& x, i32& y) noexcept;
+MGO_API void input_get_previous_mouse_position(i32& x, i32& y) noexcept;
 
-void input_process_button(buttons button, b8 pressed);
-void input_process_mouse_move(i16 x, i16 y);
-void input_process_mouse_wheel(i8 z_delta);
+void input_process_button(buttons button, b8 pressed) noexcept;
+void input_process_mouse_move(i16 x, i16 y) noexcept;
+void input_process_mouse_wheel(i8 z_delta) noexcept;

@@ -63,7 +63,7 @@ MGO_API T* mg_placement_construct(T* mem, memory_tag tag, Args&&... args) {
 
 // destructor helper if objects were allocated with placement new, ~T will not be called for you other wise
 template<typename T>
-MGO_API void mg_placement_delete(T* ptr, memory_tag tag) {
+MGO_API void mg_placement_delete(T* ptr, memory_tag tag) noexcept {
     if (tag == MEMORY_TAG_UNKNOWN) {
         MGO_WARN("Freeing memory with unknown tag. Reclass this allocation");
     }

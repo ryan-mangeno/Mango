@@ -38,19 +38,19 @@ class Platform {
 
 		// platform specific memory management and utilities
 
-		static void* allocate(u64 size, b8 aligned);
-		static void  free(void* block, b8 aligned);
-		static void* zero_memory(void* block, u64 size);
-		static void* copy_memory(void* dest, const void* source, u64 size);
-		static void* set_memory(void* dest, i32 value, u64 size);
+		static void* allocate(u64 size, b8 aligned) noexcept;
+		static void  free(void* block, b8 aligned) noexcept;
+		static void* zero_memory(void* block, u64 size) noexcept;
+		static void* copy_memory(void* dest, const void* source, u64 size) noexcept;
+		static void* set_memory(void* dest, i32 value, u64 size) noexcept;
 
 		static void console_write(const char* message, log_level color);
 		static void console_write_error(const char* message, log_level color);
 
-		static f64 get_absolute_time();
+		static f64 get_absolute_time() noexcept;
 
-		static void sleep(u64 ms);
+		static void sleep(u64 ms) noexcept;
 	
 	private:
-		InternalState* internal_state_ = nullptr;
+		InternalState* m_internal_state = nullptr;
 };

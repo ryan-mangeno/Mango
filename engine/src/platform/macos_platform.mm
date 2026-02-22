@@ -12,16 +12,16 @@
 #include <time.h>
 
 
-static f64 start_time = 0;
+static f64 s_start_time = 0;
 
-b8 Platform::is_running() { return !internal_state_->quit_requested; }
+b8 Platform::is_running() { return !m_internal_state->quit_requested; }
 
 b8 Platform::startup(const AppConfig& config) {
 
     // TODO: replace with own allocator
-    internal_state_ = static_cast<InternalState*>(malloc(sizeof(InternalState)));
+    m_internal_state = static_cast<InternalState*>(malloc(sizeof(InternalState)));
 
-    InternalState* state = internal_state_;
+    InternalState* state = m_internal_state;
 
     if (!state) {
         return FALSE;
@@ -86,13 +86,13 @@ b8 Platform::startup(const AppConfig& config) {
     [NSApp activateIgnoringOtherApps:YES];
     [NSApp finishLaunching];
 
-    start_time = get_absolute_time();
+    s_start_time = get_absolute_time();
 
     return TRUE;
 }
 
 void Platform::shutdown() {
-    InternalState* state = static_cast<InternalState*>(internal_state_);
+    InternalState* state = static_cast<InternalState*>(m_internal_state);
 
     if (state->window) {
         [state->window setDelegate:nil]; // Prevent delegate callbacks during teardown
@@ -109,7 +109,7 @@ void Platform::shutdown() {
 
     // NOTE: c free not Platform::free 
     // TODO: replace with own allocator
-    ::free(internal_state_);
+    ::free(m_internal_state);
 }
 
 b8 Platform::pump_message() {
@@ -131,26 +131,26 @@ b8 Platform::pump_message() {
         }
     }
 
-    return internal_state_->quit_requested;
+    return m_internal_state->quit_requested;
 }
 
-void* Platform::allocate(u64 size, b8 aligned) {
+void* Platform::allocate(u64 size, b8 aligned) noexcept {
     return malloc(size); // TODO: add aligned logic
 }   
 
-void Platform::free(void* block, b8 aligned) {
+void Platform::free(void* block, b8 aligned) noexcept {
     ::free(block); // TODO: add aligned logic
 }
 
-void* Platform::zero_memory(void* block, u64 size) {
+void* Platform::zero_memory(void* block, u64 size) noexcept {
     return memset(block, 0, size);
 }
 
-void* Platform::copy_memory(void* dest, const void* source, u64 size) {
+void* Platform::copy_memory(void* dest, const void* source, u64 size) noexcept {
     return memcpy(dest, source, size);
 }
 
-void* Platform::set_memory(void* dest, i32 value, u64 size) {
+void* Platform::set_memory(void* dest, i32 value, u64 size) noexcept {
     return memset(dest, value, size);
 }   
 
@@ -188,15 +188,15 @@ void Platform::console_write_error(const char* message, log_level color) {
     fflush(stderr);
 }
 
-f64 Platform::get_absolute_time() {
+f64 Platform::get_absolute_time() noexcept {
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
     f64 now_time = static_cast<f64>(now.tv_sec) + static_cast<f64>(now.tv_nsec) * static_cast<f64>(1e-9);
 
-    return now_time - start_time;
+    return now_time - s_start_time;
 }
 
-void Platform::sleep(u64 ms) {
+void Platform::sleep(u64 ms) noexcept {
     struct timespec ts;
     ts.tv_sec  = ms / static_cast<u64>(1e3);
     ts.tv_nsec = (ms % static_cast<u64>(1e3)) * static_cast<f64>(1e6);

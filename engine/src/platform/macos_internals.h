@@ -21,7 +21,7 @@ struct InternalState {
     b8 quit_requested;
 };
 
-extern "C" {
-    AppleInputView* create_apple_input();
-} 
+
+AppleInputView* create_apple_input();
+
 #endif

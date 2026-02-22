@@ -9,10 +9,10 @@
 //          ... jobified
 
 struct registered_event {
-    void* listener_;
-    EventCallback callback_;
+    void* listener;
+    EventCallback callback;
 
-    registered_event(void* lis, EventCallback cb) : listener_(lis), callback_(cb) {}
+    registered_event(void* lis, EventCallback cb) : listener(lis), callback(cb) {}
 };
 
 struct event_code_entry {
@@ -51,7 +51,7 @@ b8 event_register(u16 code, void* listener, EventCallback callback) {
 
     u64 count = state_.registered_[code].events_.size();
     for (u64 i=0 ; i<count ; ++i) {
-        if (state_.registered_[code].events_[i].listener_ == listener) {
+        if (state_.registered_[code].events_[i].listener == listener) {
             // TODO: warn
             return FALSE;
         }
@@ -77,7 +77,7 @@ b8 event_unregister(u16 code, void* listener, EventCallback callback) {
 
     for (u64 i=0 ; i<count ; ++i) {
         const registered_event& e = state_.registered_[code].events_[i];
-        if (e.listener_ == listener && e.callback_ == callback) {
+        if (e.listener == listener && e.callback == callback) {
             state_.registered_[code].events_.pop_back();
             return TRUE;
         }        
@@ -102,7 +102,7 @@ b8 event_fire(u16 code, void* sender, EventContext ctx) {
     for (u64 i=0 ; i<count ; ++i) {
         const registered_event& e = state_.registered_[code].events_[i];
         // allow callbacks to stop propogation to other listeners
-        if (e.callback_(code, e.listener_, sender, ctx)) {
+        if (e.callback(code, e.listener, sender, ctx)) {
             return TRUE;
         }
     }

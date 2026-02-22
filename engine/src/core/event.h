@@ -21,7 +21,7 @@ struct EventContext {
         u8 u8[16];
 
         char c[16];
-    } data_;
+    } data;
 };
 
 // should return true if handled

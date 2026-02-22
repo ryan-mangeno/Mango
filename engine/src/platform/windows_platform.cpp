@@ -22,9 +22,9 @@ b8 Platform::is_running() { return TRUE; }
 
 b8 Platform::startup(const AppConfig& attribs) {
     
-    internal_state_ = static_cast<InternalState*>(malloc(sizeof(InternalState)));
+    m_internal_state = static_cast<InternalState*>(malloc(sizeof(InternalState)));
 
-    InternalState* state = internal_state_;
+    InternalState* state = m_internal_state;
     
     state->h_instance = GetModuleHandle(0);
 
@@ -114,7 +114,7 @@ b8 Platform::startup(const AppConfig& attribs) {
 }
 
 void Platform::shutdown() {
-    InternalState* state = static_cast<InternalState*>(internal_state_);
+    InternalState* state = static_cast<InternalState*>(m_internal_state);
 
     if (state->hwnd) {
         DestroyWindow(statehwnd);
