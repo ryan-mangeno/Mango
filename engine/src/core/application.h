@@ -31,10 +31,12 @@ class Application {
         Application(const Application& other) = delete;
         Application(const Application&& other) = delete;
 
-        inline const ApplicationState& get_state() {return app_state_; }
+        static inline ApplicationState& get_state() {
+            static ApplicationState app_state;
+            return app_state;
+        }
 
     private:
-        ApplicationState app_state_;
 };
 
 Application* create_application(); // NOTE: defined by client
