@@ -19,7 +19,6 @@ b8 Platform::is_running() { return !m_internal_state->quit_requested; }
 
 b8 Platform::startup(const AppConfig& config) {
 
-    // TODO: replace with own allocator
     m_internal_state = static_cast<InternalState*>(mg_allocate(sizeof(InternalState), MEMORY_TAG_APPLICATION));
 
     InternalState* state = m_internal_state;
@@ -204,8 +203,6 @@ void Platform::sleep(u64 ms) noexcept {
 
     nanosleep(&ts, nullptr);
 }
-
-
 
 // TODO: ensure delegates callback impls are destroyed before platform is
 @implementation AppleWindowDelegate

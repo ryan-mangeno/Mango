@@ -15,8 +15,8 @@ struct KeyboardState {
 };
 
 struct MouseState {
-    i16 x;
-    i16 y;
+    f32 x;
+    f32 y;
     u8 bits; // bitmask for mouse state
 };
 
@@ -55,6 +55,9 @@ void input_update(f64 delta_time) noexcept {
 }
 
 void input_process_key(keys key, b8 pressed) noexcept {
+    if (pressed) MGO_INFO("Key down: %u", key);
+    else         MGO_INFO("Key up: %u", key);
+
     u32 block = key >> 6; 
     u32 idx   = key & 63; 
 
@@ -75,6 +78,9 @@ void input_process_key(keys key, b8 pressed) noexcept {
 }
 
 void input_process_button(buttons button, b8 pressed) noexcept {
+    if (pressed) MGO_INFO("button down: %d", button);
+    else         MGO_INFO("button up: %d", button);
+
     u32 mask = (1ULL << button);
     b8 is_down = ( s_state.mouse_current.bits & (mask) ) != 0;
 
@@ -91,24 +97,25 @@ void input_process_button(buttons button, b8 pressed) noexcept {
     }
 }
 
-void input_process_mouse_move(i16 x, i16 y) noexcept {
+void input_process_mouse_move(f32 x, f32 y) noexcept {
+    MGO_INFO("Mouse move: x=%f y=%f", x, y);
     if (s_state.mouse_current.x != x || s_state.mouse_current.y != y) {
         // NOTE: enable if debugging
         // MGO_DEBUG("Mouse move ...
 
         s_state.mouse_current.x = x;
-        s_state.mouse_current.x = y;
+        s_state.mouse_current.y = y;
 
         EventContext ctx;
-        ctx.data.u16[0] = x;
-        ctx.data.u16[1] = y;
+        ctx.data.f32[0] = x;
+        ctx.data.f32[1] = y;
         event_fire(EVENT_CODE_MOUSE_MOVED, 0, ctx);
     }
 }
 
 void input_process_mouse_wheel(i8 z_delta) noexcept {
     // NOTE: no internal state for mouse wheel
-
+    MGO_INFO("Mouse wheel: %d", z_delta);
     EventContext ctx;
     ctx.data.u8[0] = z_delta;
     event_fire(EVENT_CODE_MOUSE_WHEEL, 0, ctx);

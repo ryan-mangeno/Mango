@@ -166,5 +166,5 @@ MGO_API void input_get_mouse_position(i32& x, i32& y) noexcept;
 MGO_API void input_get_previous_mouse_position(i32& x, i32& y) noexcept;
 
 void input_process_button(buttons button, b8 pressed) noexcept;
-void input_process_mouse_move(i16 x, i16 y) noexcept;
+void input_process_mouse_move(f32 x, f32 y) noexcept;
 void input_process_mouse_wheel(i8 z_delta) noexcept;

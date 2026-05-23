@@ -98,30 +98,45 @@ static keys translate_keycode(u16 ns_keycode) {
 - (BOOL)acceptsFirstResponder { return YES; }
 - (BOOL)canBecomeKeyView { return YES; }
 
-- (void)keyDown:(NSEvent *)event {
-    // TODO: Input system fire key_pressed
+- (void)keyDown:(NSEvent *) event {
+    keys key = translate_keycode([event keyCode]);
+    input_process_key(key, false);
 }
 
-- (void)keyUp:(NSEvent *)event {
-    keys key_code = translate_keycode([event keyCode]);
-    // TODO: Input system fire key_released, same for rest 
+- (void)keyUp:(NSEvent *) event {
+    keys key = translate_keycode([event keyCode]);
+    input_process_key(key, true);
 }
 
-- (void)mouseDown:(NSEvent *)event { /* Left */ 
+- (void)mouseDown:(NSEvent *) event { /* Left */ 
+    input_process_button(BUTTON_LEFT, true);    
 }
 
-- (void)rightMouseDown:(NSEvent *)event { /* Right */ 
+- (void)rightMouseDown:(NSEvent *) event { /* Right */ 
+    input_process_button(BUTTON_RIGHT, true);  
 }
 
-- (void)mouseUp:(NSEvent *)event { 
+- (void)mouseUp:(NSEvent *) event { 
+    input_process_button(BUTTON_LEFT, false);  
 }
 
-- (void)mouseMoved:(NSEvent *)event {
-    // NSPoint location = [event locationInWindow];
+- (void)rightMouseUp:(NSEvent *) event { 
+    input_process_button(BUTTON_RIGHT, false);
 }
 
-- (void)scrollWheel:(NSEvent *)event {
-    // f32 delta_y = [event scrollingDeltaY];
+- (void)mouseMoved:(NSEvent *) event {
+    NSPoint location = [event locationInWindow];
+    f32 x = location.x;
+    f32 y = location.y; 
+    input_process_mouse_move(x, y);
+}
+
+- (void)scrollWheel:(NSEvent *) event {
+    f32 delta_y = [event scrollingDeltaY];
+    if (delta_y != 0) {
+        i8 flat_dy = (delta_y < 0.0f) ? -1 : 1;
+        input_process_mouse_wheel(flat_dy);
+    }
 }
 @end
 

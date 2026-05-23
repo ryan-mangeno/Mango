@@ -218,8 +218,8 @@ LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARA
             input_process_key(key, pressed);
         }   break;
         case WM_MOUSEMOVE: {
-            i32 x = GET_X_LPARAM(l_param);
-            i32 y = GET_Y_LPARAM(l_param);
+            f32 x = GET_X_LPARAM(l_param);
+            f32 y = GET_Y_LPARAM(l_param);
             input_process_mouse_move(x, y);
         }   break;
         case WM_MOUSEHWEEL: {
