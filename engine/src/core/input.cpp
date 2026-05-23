@@ -98,10 +98,8 @@ void input_process_button(buttons button, b8 pressed) noexcept {
 }
 
 void input_process_mouse_move(f32 x, f32 y) noexcept {
-    MGO_INFO("Mouse move: x=%f y=%f", x, y);
     if (s_state.mouse_current.x != x || s_state.mouse_current.y != y) {
-        // NOTE: enable if debugging
-        // MGO_DEBUG("Mouse move ...
+        MGO_INFO("Mouse move: x=%f y=%f", x, y);
 
         s_state.mouse_current.x = x;
         s_state.mouse_current.y = y;
