@@ -26,8 +26,8 @@ b8 Application::create_app(game* game_inst) {
     ApplicationState& app_state = get_state();
 
     app_state.game_inst = game_inst;
-    app_state.width = game_inst->app_config_.width;
-    app_state.height = game_inst->app_config_.height;
+    app_state.width = game_inst->app_config.width;
+    app_state.height = game_inst->app_config.height;
     app_state.is_running = FALSE;
     app_state.is_suspended = FALSE;
 
@@ -43,7 +43,7 @@ b8 Application::create_app(game* game_inst) {
 
     app_state.platform_state = mg_placement_new<Platform>(MEMORY_TAG_APPLICATION);
 
-    if (!app_state.platform_state->startup(game_inst->app_config_)) {
+    if (!app_state.platform_state->startup(game_inst->app_config)) {
         MGO_ERROR("Engine failed startup!");
         return FALSE;
     }
@@ -112,9 +112,11 @@ void Application::shutdown() {
         app_state.platform_state->shutdown();
     }
 
-    if( app_state.platform_state ) {
+    if (app_state.platform_state) {
         mg_placement_delete(app_state.platform_state, MEMORY_TAG_APPLICATION);
         app_state.platform_state = nullptr;
     }
+
+    MGO_INFO(mg_get_memory_usage_str());
 }
 

@@ -4,7 +4,7 @@
 struct game {
     // Game-specific state, managed by the client
     void* state_ = nullptr;
-    AppConfig app_config_{};
+    AppConfig app_config{};
 
     // func pointers to game callbacks
     b8 (*initialize)(game* game_inst) = nullptr;

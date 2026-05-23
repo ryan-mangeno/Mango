@@ -7,6 +7,7 @@
 
 #include <core/assert.h>
 #include <core/logger.h>
+#include <core/mgmemory.h>
 
 #include <stdlib.h>
 #include <time.h>
@@ -19,7 +20,7 @@ b8 Platform::is_running() { return !m_internal_state->quit_requested; }
 b8 Platform::startup(const AppConfig& config) {
 
     // TODO: replace with own allocator
-    m_internal_state = static_cast<InternalState*>(malloc(sizeof(InternalState)));
+    m_internal_state = static_cast<InternalState*>(mg_allocate(sizeof(InternalState), MEMORY_TAG_APPLICATION));
 
     InternalState* state = m_internal_state;
 
@@ -109,7 +110,7 @@ void Platform::shutdown() {
 
     // NOTE: c free not Platform::free 
     // TODO: replace with own allocator
-    ::free(m_internal_state);
+    mg_free(m_internal_state, sizeof(InternalState), MEMORY_TAG_APPLICATION);
 }
 
 b8 Platform::pump_message() {
