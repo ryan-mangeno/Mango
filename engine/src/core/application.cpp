@@ -53,7 +53,7 @@ b8 Application::create_app(game* game_inst) {
         return FALSE;
     }
 
-    // app_state.game_inst->on_resize(app_state.width_, app_state.height_); TODO: 
+    // app_state.game_inst->on_resize(app_state.width, app_state.height); TODO: 
 
     app_state.is_running = TRUE;
     app_state.is_suspended = FALSE;
@@ -79,12 +79,12 @@ void Application::run() {
             f64 delta_time = current_time - app_state.last_time;
             app_state.last_time = current_time;
 
-            if (!app_state.game_inst->update(app_state.game_inst, static_cast<f32>(delta_time))) {
+            if (!app_state.game_inst->update(app_state.game_inst, delta_time)) {
                 MGO_ERROR("game update failed!");
                 break;
             }
 
-            if (!app_state.game_inst->render(app_state.game_inst, static_cast<f32>(delta_time))) {
+            if (!app_state.game_inst->render(app_state.game_inst, delta_time)) {
                 MGO_ERROR("game render failed!");
                 break;
             }
