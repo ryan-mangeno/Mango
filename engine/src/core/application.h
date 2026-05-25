@@ -3,6 +3,7 @@
 #include <defines.h>
 #include <platform/platform.h>
 
+#include "clock.h"
 
 struct game;
 
@@ -14,7 +15,7 @@ struct ApplicationState {
     i16 height;
     Platform* platform_state;
     game* game_inst;
-    f64 last_time;
+    Clock clock;
 };
 
 class Application {

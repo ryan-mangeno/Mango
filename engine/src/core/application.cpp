@@ -1,14 +1,16 @@
 #include "application.h"
 
+#include "event.h"
+#include "input.h"
+#include "clock.h"
+
 #include <core/logger.h>
 #include <core/assert.h>
 #include <utility/type_traits.h>
 #include <game_types.h>
 #include <core/mgmemory.h>
-
 #include <containers/darray.h>
-#include "event.h"
-#include "input.h"
+
 
 static b8 s_initialized = false;
 
@@ -64,10 +66,13 @@ b8 Application::create_app(game* game_inst) {
 
 void Application::run() {
     MGO_INFO("Running ...");
+    
     ApplicationState& app_state = get_state();
     Platform& state = *(app_state.platform_state);
 
     MGO_INFO(mg_get_memory_usage_str());
+
+    app_state.clock.start();
 
     while (app_state.is_running) {
         if (state.pump_message()) {
@@ -76,8 +81,8 @@ void Application::run() {
 
         if (!app_state.is_suspended) {
             f64 current_time = state.get_absolute_time();
-            f64 delta_time = current_time - app_state.last_time;
-            app_state.last_time = current_time;
+            f64 delta_time = app_state.clock.get_last_time() - current_time;
+            app_state.clock.set_last_time(current_time);
 
             if (!app_state.game_inst->update(app_state.game_inst, delta_time)) {
                 MGO_ERROR("game update failed!");
