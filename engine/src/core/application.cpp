@@ -69,10 +69,16 @@ void Application::run() {
     
     ApplicationState& app_state = get_state();
     Platform& state = *(app_state.platform_state);
+    Clock& clock = app_state.clock;
 
     MGO_INFO(mg_get_memory_usage_str());
 
-    app_state.clock.start();
+    clock.start();
+    clock.update();
+    clock.set_last_time(clock.get_elapsed_time());
+    f64 running_time = 0.0;
+    u8 frame_count = 0;
+    f64 target_fps = 1.0 / 60.0; // NOTE: should be adjustible but hardcoding for now
 
     while (app_state.is_running) {
         if (state.pump_message()) {
@@ -80,9 +86,10 @@ void Application::run() {
         }
 
         if (!app_state.is_suspended) {
-            f64 current_time = state.get_absolute_time();
-            f64 delta_time = app_state.clock.get_last_time() - current_time;
-            app_state.clock.set_last_time(current_time);
+            clock.update();
+            f64 current_time = clock.get_elapsed_time();
+            f64 delta_time = current_time - clock.get_last_time();
+            f64 frame_start_time = Platform::get_absolute_time();
 
             if (!app_state.game_inst->update(app_state.game_inst, delta_time)) {
                 MGO_ERROR("game update failed!");
@@ -94,8 +101,26 @@ void Application::run() {
                 break;
             }
 
+            f64 frame_end_time = Platform::get_absolute_time();
+            f64 frame_elapsed_time = frame_end_time - frame_start_time;
+            running_time += frame_elapsed_time;
+            f64 remaining_seconds = target_fps - frame_elapsed_time;
+
+            if (remaining_seconds > 0) {
+                u64 remaining_ms = (remaining_seconds * 1000);
+
+                // if there is time left, give it back to os
+                b8 limit_frames = FALSE; // Hardcoded for now
+                if (remaining_ms > 0 && limit_frames) {
+                    Platform::sleep(remaining_ms - 1);
+                }
+
+                frame_count++;
+            }
+
             // NOTE: input update is handled after frame ends
             input_update(delta_time);
+            clock.set_last_time(current_time);
         }
     }  
 
