@@ -238,23 +238,23 @@ LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARA
         case WM_MBUTTONUP:
         case WM_RBUTTONUP: {
             b8 pressed = msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN;
-            buttons mouse_button = BUTTON_MAX_BUTTONS;
+            buttons mouse_button = Button::MAX_BUTTONS;
             switch (msg) {
                 case WM_LBUTTONDOWN:
                 case WM_LBUTTONUP:
-                    mouse_button = BUTTON_LEFT;
+                    mouse_button = Button::LEFT;
                     break;
                 case WM_MBUTTONDOWN:
                 case WM_MBUTTONUP:
-                    mouse_button = BUTTON_MIDDLE;
+                    mouse_button = Button::MIDDLE;
                     break;
                 case WM_RBUTTONDOWN:
                 case WM_RBUTTONUP:
-                    mouse_button = BUTTON_RIGHT;
+                    mouse_button = Button::RIGHT;
                     break;
             }
 
-            if (mouse_button != BUTTON_MAX_BUTTONS) {
+            if (mouse_button != Button::MAX_BUTTONS) {
                 input_process_button(mouse_button, pressed);
             }
         }   break;

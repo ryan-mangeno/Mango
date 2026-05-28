@@ -2,19 +2,19 @@
 
 #include <defines.h>
 
-typedef enum buttons : i32 {
+enum buttons : i32 {
     BUTTON_LEFT,
     BUTTON_RIGHT,
     BUTTON_MIDDLE,
     BUTTON_MAX_BUTTONS
-} buttons;
+};
 
 #define DEFINE_KEY(name, code) KEY_##name = code
 
 // these lineup nicely with windows keycodes
 // there is a translation table for macos
 
-typedef enum keys : i32 {
+enum keys : i32 {
     DEFINE_KEY(BACKSPACE, 0x08),
     DEFINE_KEY(ENTER, 0x0D),
     DEFINE_KEY(TAB, 0x09),
@@ -143,7 +143,7 @@ typedef enum keys : i32 {
     DEFINE_KEY(GRAVE, 0xC0),
 
     KEYS_MAX_KEYS
-} keys;
+};
 
 bool input_initialize();
 void input_shutdown();
