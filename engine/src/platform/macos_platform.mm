@@ -1,13 +1,13 @@
-#include <defines.h>
+#include "defines.h"
 
 #if MGO_PLATFORM_APPLE
 
 #include "platform.h"
 #include "macos_internals.h"
 
-#include <core/assert.h>
-#include <core/logger.h>
-#include <core/mgmemory.h>
+#include "core/assert.h"
+#include "core/logger.h"
+#include "core/mgmemory.h"
 
 #include <stdlib.h>
 #include <time.h>
@@ -130,8 +130,8 @@ b8 Platform::pump_message() {
             [NSApp updateWindows];   // notifies os we are still processing
         }
     }
-
-    return m_internal_state->quit_requested;
+    
+    return !m_internal_state->quit_requested;
 }
 
 void* Platform::allocate(u64 size, b8 aligned) noexcept {

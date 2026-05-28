@@ -3,7 +3,7 @@
 // included from my stdx project, check it out!
 // https://github.com/ryan-mangeno/stdx/blob/main/stdx/include/type_traits.h
 
-#include <defines.h>
+#include "defines.h"
 
 // --- std::integral_constant ---
 template<typename T, T v>

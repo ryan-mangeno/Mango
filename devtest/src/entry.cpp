@@ -1,8 +1,8 @@
 #include "game.h"
 
-#include <entry.h>
+#include "entry.h"
 
-#include <core/mgmemory.h>
+#include "core/mgmemory.h"
 
 
 b8 create_game(game* out_game) {

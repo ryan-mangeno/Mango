@@ -1,18 +1,21 @@
 #include "renderer_backend.h"
+#include "core/mgmemory.h"
 
-#include <core/logger.h>
+#include "vulkan/vulkan_api.h"
 
 RendererAPI* RendererBackend::create() {
-    
+
     RendererAPI* out_api = nullptr;
 
     switch (RendererAPI::get_api()) {
         case GraphicsAPI::Vulkan:
-            // out_api = ...
+            out_api = mg_new<VulkanAPI>(MEMORY_TAG_RENDERER);
             break;
 
+        case GraphicsAPI::DirectX:
+        case GraphicsAPI::OpenGL:
+        case GraphicsAPI::None:
         default: 
-            MGO_ERROR("Invalid Graphics API");
             break;
     }
 

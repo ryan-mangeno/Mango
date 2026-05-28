@@ -1,9 +1,9 @@
-#include <defines.h>
+#include "defines.h"
 
 #if MGO_PLATFORM_APPLE
 
 #include "macos_internals.h"
-#include <core/input.h>
+#include "core/input.h"
 
 
 AppleInputView* create_apple_input() {

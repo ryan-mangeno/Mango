@@ -1,12 +1,33 @@
 #include "event.h"
 #include "mgmemory.h"
 
-#include <containers/darray.h>
+#include "containers/darray.h"
 
 // TODO: 1. this can be multi threaded 
 //       2. maybe add priority 
 //       3. we can set a limit on how many events fired per frame ( event queue ) 
 //          ... jobified
+
+
+/* Layout Example
+
+EVENT SYSTEM LOOKUP TABLE 
+───────────────────────────────────────────────────────────────────────────
+Slot [0]: (EMPTY)
+───────────────────────────────────────────────────────────────────────────
+Slot [1] (EVENT_CODE_APPLICATION_QUIT):
+   └── darray: [ (Listener: Application_Instance_A, Callback: on_event) ]
+───────────────────────────────────────────────────────────────────────────
+Slot [2] (EVENT_CODE_KEY_PRESSED):
+   └── darray: [ 
+                 (Listener: Application_Instance_A, Callback: on_key),
+                 (Listener: Player_1_Instance,      Callback: jump),
+                 (Listener: UI_Menu_Instance,       Callback: play_sound)
+               ]
+───────────────────────────────────────────────────────────────────────────
+Slot [3] to [127]: (EMPTY)
+
+*/
 
 struct registered_event {
     void* listener;
@@ -26,59 +47,69 @@ struct event_system_state {
     event_code_entry registered_[MAX_MESSAGE_CODES];
 };
 
-static b8 is_inialized_ = FALSE;
-static event_system_state state_;
+static b8 s_is_initialized = FALSE;
+static event_system_state* s_state = nullptr;
 
 b8 event_initialize() {
-    if (is_inialized_ == TRUE) {
+    if (s_is_initialized == TRUE) {
         return FALSE;
     }
-    is_inialized_ = TRUE;
+
+    s_state = mg_new<event_system_state>(MEMORY_TAG_APPLICATION);
+
+    s_is_initialized = TRUE;
     return TRUE;
 }
 
 void event_shutdown() {
-    // free events arr, and objects pointer to should be destroyed on their own
-    state_ = {};
-    is_inialized_ = FALSE;
+    if (s_is_initialized == FALSE || s_state == nullptr) {
+        return;
+    }
+
+    mg_delete(s_state, MEMORY_TAG_APPLICATION);
+    s_state = nullptr;
+
+    s_is_initialized = FALSE;
 }
 
 
 b8 event_register(u16 code, void* listener, EventCallback callback) {
-    if (is_inialized_ == FALSE) {
+    if (s_is_initialized == FALSE) {
         return FALSE;
     }   
 
-    u64 count = state_.registered_[code].events_.size();
+    auto& events = s_state->registered_[code].events_;
+    u64 count = events.size();
     for (u64 i=0 ; i<count ; ++i) {
-        if (state_.registered_[code].events_[i].listener == listener) {
-            // TODO: warn
+        if (events[i].listener == listener) {
+            MGO_WARN("Tried to register duplicate event...");
             return FALSE;
         }
     }
 
     // no duplicate was found, proceed to callback
-    state_.registered_[code].events_.emplace_back(listener, callback);
+    events.emplace_back(listener, callback);
 
     return TRUE;
 }
 
 b8 event_unregister(u16 code, void* listener, EventCallback callback) {
-    if (is_inialized_ == FALSE) {
+    if (s_is_initialized == FALSE) {
         return FALSE;
     }   
 
-    u64 count = state_.registered_[code].events_.size();
+    auto& events = s_state->registered_[code].events_;
+    u64 count = events.size();
 
     if (count == 0) {
-        // TODO: warn
+        MGO_WARN("No events to unregister.");
         return FALSE;
     }
 
-    for (u64 i=0 ; i<count ; ++i) {
-        const registered_event& e = state_.registered_[code].events_[i];
+    for (u64 i = 0; i<events.size(); ) {
+        const registered_event& e = events[i];
         if (e.listener == listener && e.callback == callback) {
-            state_.registered_[code].events_.pop_back();
+            events.erase(i);
             return TRUE;
         }        
     }
@@ -88,11 +119,12 @@ b8 event_unregister(u16 code, void* listener, EventCallback callback) {
 }
 
 b8 event_fire(u16 code, void* sender, EventContext ctx) {
-    if (is_inialized_ == FALSE) {
+    if (s_is_initialized == FALSE) {
         return FALSE;
     }
 
-    u64 count = state_.registered_[code].events_.size();
+    auto& events = s_state->registered_[code].events_;
+    u64 count = events.size();
 
     if (count == 0) {
         // TODO: warn
@@ -100,7 +132,7 @@ b8 event_fire(u16 code, void* sender, EventContext ctx) {
     }
 
     for (u64 i=0 ; i<count ; ++i) {
-        const registered_event& e = state_.registered_[code].events_[i];
+        const registered_event& e = events[i];
         // allow callbacks to stop propogation to other listeners
         if (e.callback(code, e.listener, sender, ctx)) {
             return TRUE;

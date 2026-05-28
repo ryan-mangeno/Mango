@@ -1,6 +1,6 @@
 #include "game.h"
 
-#include <core/logger.h>
+#include "core/logger.h"
 
 b8 initialize(struct game* game_inst) {
     MGO_DEBUG("game initialize called!");

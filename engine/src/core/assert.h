@@ -1,6 +1,6 @@
 #pragma once
 
-#include <defines.h>
+#include "defines.h"
 
 // comment out this line to disable assertions
 #define MGO_ASSERTS_ENABLED

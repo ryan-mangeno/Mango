@@ -1,6 +1,6 @@
 #pragma once
 
-#include <defines.h>
+#include "defines.h"
 
 enum buttons : i32 {
     BUTTON_LEFT,

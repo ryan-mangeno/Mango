@@ -4,15 +4,21 @@
 #include "input.h"
 #include "clock.h"
 
-#include <core/logger.h>
-#include <core/assert.h>
-#include <utility/type_traits.h>
-#include <game_types.h>
-#include <core/mgmemory.h>
-#include <containers/darray.h>
+#include "core/logger.h"
+#include "core/assert.h"
+#include "utility/type_traits.h"
+#include "game_types.h"
+#include "core/mgmemory.h"
+#include "containers/darray.h"
+#include "renderer/renderer.h"
+#include "renderer/renderer_types.h"
+
 
 
 static b8 s_initialized = false;
+
+Application::State Application::s_app_state = {};
+Application* Application::s_instance = nullptr;
 
 b8 Application::create_app(game* game_inst) {
     MGO_ASSERT_MSG(!s_initialized, "application already initialized!");
@@ -25,40 +31,47 @@ b8 Application::create_app(game* game_inst) {
         return FALSE;
     }
 
-    ApplicationState& app_state = get_state();
-
-    app_state.game_inst = game_inst;
-    app_state.width = game_inst->app_config.width;
-    app_state.height = game_inst->app_config.height;
-    app_state.is_running = FALSE;
-    app_state.is_suspended = FALSE;
+    s_app_state.game_inst = game_inst;
+    s_app_state.width = game_inst->app_config.width;
+    s_app_state.height = game_inst->app_config.height;
+    s_app_state.is_running = FALSE;
+    s_app_state.is_suspended = FALSE;
 
     if (!input_initialize()) {
-        MGO_ERROR("Input system failed to initialize, application can't continue ...");
+        MGO_FATAL("Input system failed to initialize, application can't continue ...");
         return FALSE;
     }
 
     if (!event_initialize()) {
-        MGO_ERROR("Event system failed to initialize, application can't continue ...");
+        MGO_FATAL("Event system failed to initialize, application can't continue ...");
         return FALSE;
     }
 
-    app_state.platform_state = mg_placement_new<Platform>(MEMORY_TAG_APPLICATION);
+    event_register(EVENT_CODE_APPLICATION_QUIT, this, Application::on_event);
+    event_register(EVENT_CODE_KEY_PRESSED, this, Application::on_key);
+    event_register(EVENT_CODE_KEY_RELEASED, this, Application::on_key);
 
-    if (!app_state.platform_state->startup(game_inst->app_config)) {
-        MGO_ERROR("Engine failed startup!");
+    s_app_state.platform_state = mg_new<Platform>(MEMORY_TAG_APPLICATION);
+
+    if (!s_app_state.platform_state->startup(game_inst->app_config)) {
+        MGO_FATAL("Engine failed startup!");
         return FALSE;
     }
 
-    if (!app_state.game_inst->initialize(app_state.game_inst)) {
-        MGO_ERROR("game failed to initialize!");
+    if (!Renderer::init(game_inst->app_config.title)) {
+        MGO_FATAL("Failed to initialize renderer. Aborting application.");
         return FALSE;
     }
 
-    // app_state.game_inst->on_resize(app_state.width, app_state.height); TODO: 
+    if (!s_app_state.game_inst->initialize(s_app_state.game_inst)) {
+        MGO_FATAL("game failed to initialize!");
+        return FALSE;
+    }
 
-    app_state.is_running = TRUE;
-    app_state.is_suspended = FALSE;
+    // s_app_state.game_inst->on_resize(s_app_state.width, s_app_state.height); TODO: 
+
+    s_app_state.is_running = TRUE;
+    s_app_state.is_suspended = FALSE;
     s_initialized = TRUE;
 
     return TRUE;
@@ -67,9 +80,8 @@ b8 Application::create_app(game* game_inst) {
 void Application::run() {
     MGO_INFO("Running ...");
     
-    ApplicationState& app_state = get_state();
-    Platform& state = *(app_state.platform_state);
-    Clock& clock = app_state.clock;
+    Platform& state = *(s_app_state.platform_state);
+    Clock& clock = s_app_state.clock;
 
     MGO_INFO(mg_get_memory_usage_str());
 
@@ -80,26 +92,31 @@ void Application::run() {
     u8 frame_count = 0;
     f64 target_fps = 1.0 / 60.0; // NOTE: should be adjustible but hardcoding for now
 
-    while (app_state.is_running) {
-        if (state.pump_message()) {
-            app_state.is_running = FALSE;
+    while (s_app_state.is_running) {
+        if (!state.pump_message()) {
+            s_app_state.is_running = FALSE;
+            break;
         }
 
-        if (!app_state.is_suspended) {
+        if (!s_app_state.is_suspended) {
             clock.update();
             f64 current_time = clock.get_elapsed_time();
             f64 delta_time = current_time - clock.get_last_time();
             f64 frame_start_time = Platform::get_absolute_time();
 
-            if (!app_state.game_inst->update(app_state.game_inst, delta_time)) {
+            if (!s_app_state.game_inst->update(s_app_state.game_inst, delta_time)) {
                 MGO_ERROR("game update failed!");
                 break;
             }
 
-            if (!app_state.game_inst->render(app_state.game_inst, delta_time)) {
+            if (!s_app_state.game_inst->render(s_app_state.game_inst, delta_time)) {
                 MGO_ERROR("game render failed!");
                 break;
             }
+
+            RenderPacket packet;
+            packet.delta_time = delta_time;
+            Renderer::draw_frame(&packet);
 
             f64 frame_end_time = Platform::get_absolute_time();
             f64 frame_elapsed_time = frame_end_time - frame_start_time;
@@ -124,7 +141,7 @@ void Application::run() {
         }
     }  
 
-    app_state.is_running = FALSE;
+    s_app_state.is_running = FALSE;
 }
 
 
@@ -132,21 +149,62 @@ void Application::shutdown() {
 
     MGO_INFO("Shutting Down!");
 
-    ApplicationState& app_state = get_state();
-
     // we could've failed before initialization, event_shutdown is safe 
     // but platform_state shutdown isn't if initialized isnt true
     if (s_initialized) {
+        event_unregister(EVENT_CODE_APPLICATION_QUIT, this, Application::on_event);
+        event_unregister(EVENT_CODE_KEY_PRESSED, this, Application::on_key);
+        event_unregister(EVENT_CODE_KEY_RELEASED, this, Application::on_key);
         event_shutdown();
         input_shutdown();
-        app_state.platform_state->shutdown();
+        s_app_state.platform_state->shutdown();
     }
 
-    if (app_state.platform_state) {
-        mg_placement_delete(app_state.platform_state, MEMORY_TAG_APPLICATION);
-        app_state.platform_state = nullptr;
+    if (s_app_state.platform_state) {
+        mg_delete(s_app_state.platform_state, MEMORY_TAG_APPLICATION);
+        s_app_state.platform_state = nullptr;
     }
 
-    MGO_INFO(mg_get_memory_usage_str());
 }
 
+
+b8 Application::on_event(u16 code, void* sender, void* listener_inst, EventContext ctx) {
+    Application* app = static_cast<Application*>(listener_inst);
+
+    switch (code) {
+        case EVENT_CODE_APPLICATION_QUIT: {
+            MGO_INFO("EVENT_CODE_APPLICATION_QUIT recieved, shutting down.\n");
+            app->s_app_state.is_running = FALSE;
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+b8 Application::on_key(u16 code, void* sender, void* listener_inst, EventContext ctx) {
+    if (code == EVENT_CODE_KEY_PRESSED) {
+        u16 key_code = ctx.data.u16[0];
+        if (key_code == KEY_ESCAPE) {
+            // NOTE: Technically firing an event to itself, but there may be other listeners.
+            EventContext data = {};
+            event_fire(EVENT_CODE_APPLICATION_QUIT, listener_inst, data);
+
+            // Block anything else from processing this.
+            return TRUE;
+        } else if (key_code == KEY_A) {
+            // Example on checking for a key
+            MGO_DEBUG("Explicit - A key pressed!");
+        } else {
+            MGO_DEBUG("'%c' key pressed in window.", key_code);
+        }
+    } else if (code == EVENT_CODE_KEY_RELEASED) {
+        u16 key_code = ctx.data.u16[0];
+        if (key_code == KEY_B) {
+            // Example on checking for a key
+            MGO_DEBUG("Explicit - B key released!");
+        } else {
+            MGO_DEBUG("'%c' key released in window.", key_code);
+        }
+    }
+    return FALSE;
+}

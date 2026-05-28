@@ -1,7 +1,7 @@
 #include "mgmemory.h"
 
-#include <core/logger.h>
-#include <platform/platform.h>
+#include "core/logger.h"
+#include "platform/platform.h"
 
 #include <string.h> // TODO: remove , will use own string lib
 #include <stdio.h> // TODO: remove 
@@ -115,3 +115,22 @@ char* mg_get_memory_usage_str() {
 
     return out_str;
 }
+
+
+template<typename T>
+class ScopedPtr {
+public:
+    explicit ScopedPtr(T* ptr) : m_ptr(ptr) {}
+    ~ScopedPtr() { mg_free(m_ptr); }  // or delete, depending on your allocator
+
+    T* operator->() { return m_ptr; }
+    T& operator*() { return *m_ptr; }
+    T* get() { return m_ptr; }
+
+    // no copy
+    ScopedPtr(const ScopedPtr&) = delete;
+    ScopedPtr& operator=(const ScopedPtr&) = delete;
+
+private:
+    T* m_ptr;
+};

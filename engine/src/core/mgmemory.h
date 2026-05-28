@@ -1,8 +1,8 @@
 #pragma once
 
-#include <defines.h>
-#include <utility/type_traits.h>
-#include <core/logger.h>
+#include "defines.h"
+#include "utility/type_traits.h"
+#include "core/logger.h"
 
 enum memory_tag {
     // For temporary use. Should be assigned one of the below or have a new tag created.
@@ -42,7 +42,7 @@ MGO_API char* mg_get_memory_usage_str();
 
 // allocates mem for object and constructs in place
 template<typename T, typename... Args>
-MGO_API T* mg_placement_new(memory_tag tag, Args&&... args) {
+MGO_API T* mg_new(memory_tag tag, Args&&... args) {
     if (tag == MEMORY_TAG_UNKNOWN) {
         MGO_WARN("Freeing memory with unknown tag. Reclass this allocation");
     }
@@ -53,7 +53,7 @@ MGO_API T* mg_placement_new(memory_tag tag, Args&&... args) {
 
 // constructs object inplace in memory
 template<typename T, typename... Args>
-MGO_API T* mg_placement_construct(T* mem, memory_tag tag, Args&&... args) {
+MGO_API T* mg_construct_at(T* mem, memory_tag tag, Args&&... args) {
     if (tag == MEMORY_TAG_UNKNOWN) {
         MGO_WARN("Freeing memory with unknown tag. Reclass this allocation");
     }
@@ -63,7 +63,7 @@ MGO_API T* mg_placement_construct(T* mem, memory_tag tag, Args&&... args) {
 
 // destructor helper if objects were allocated with placement new, ~T will not be called for you other wise
 template<typename T>
-MGO_API void mg_placement_delete(T* ptr, memory_tag tag) noexcept {
+MGO_API void mg_delete(T* ptr, memory_tag tag) noexcept {
     if (tag == MEMORY_TAG_UNKNOWN) {
         MGO_WARN("Freeing memory with unknown tag. Reclass this allocation");
     }

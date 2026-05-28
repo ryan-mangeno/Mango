@@ -1,7 +1,7 @@
 #pragma once
 
-#include <defines.h>
-#include <game_types.h>
+#include "defines.h"
+#include "game_types.h"
 
 struct game_state {
     f64 delta_time;

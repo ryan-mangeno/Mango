@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
     app.run();
     app.shutdown();
 
-    mg_placement_delete(static_cast<game*>(game_inst.state_), MEMORY_TAG_GAME);
+    mg_delete(static_cast<game*>(game_inst.state_), MEMORY_TAG_GAME);
     mg_shutdown_memory();
 
     MGO_INFO(mg_get_memory_usage_str());

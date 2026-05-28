@@ -1,11 +1,11 @@
 #pragma once 
 
-#include <defines.h>
+#include "defines.h"
 
 #if MGO_PLATFORM_APPLE
 
 #import <Cocoa/Cocoa.h>
-#include <defines.h>
+#include "defines.h"
 
 @interface AppleInputView : NSView
 @end
@@ -20,7 +20,6 @@ struct InternalState {
     AppleInputView* input_view; 
     b8 quit_requested;
 };
-
 
 AppleInputView* create_apple_input();
 

@@ -1,22 +1,14 @@
 #pragma once
 
-#include <defines.h>
-#include <platform/platform.h>
+#include "defines.h"
+#include "platform/platform.h"
 
 #include "clock.h"
+#include "core/event.h"
 
 struct game;
 
-// will grow
-struct ApplicationState {
-    b8 is_running;
-    b8 is_suspended;
-    i16 width;
-    i16 height;
-    Platform* platform_state;
-    game* game_inst;
-    Clock clock;
-};
+
 
 class Application {
     public:
@@ -32,12 +24,22 @@ class Application {
         Application(const Application& other) = delete;
         Application(const Application&& other) = delete;
 
-        static inline ApplicationState& get_state() {
-            static ApplicationState app_state;
-            return app_state;
-        }
-
     private:
+        struct State {
+            b8 is_running;
+            b8 is_suspended;
+            i16 width;
+            i16 height;
+            Platform* platform_state;
+            game* game_inst;
+            Clock clock;
+        };
+
+        static b8 on_event(u16 code, void* sender, void* listener_inst, EventContext ctx);
+        static b8 on_key(u16 code, void* sender, void* listener_inst, EventContext ctx);
+
+        static State s_app_state;
+        static Application* s_instance;
 };
 
 Application* create_application(); // NOTE: defined by client

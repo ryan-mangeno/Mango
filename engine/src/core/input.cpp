@@ -55,9 +55,6 @@ void input_update(f64 delta_time) noexcept {
 }
 
 void input_process_key(keys key, b8 pressed) noexcept {
-    if (pressed) MGO_INFO("Key down: %u", key);
-    else         MGO_INFO("Key up: %u", key);
-
     u32 block = key >> 6; 
     u32 idx   = key & 63; 
 
@@ -78,9 +75,6 @@ void input_process_key(keys key, b8 pressed) noexcept {
 }
 
 void input_process_button(buttons button, b8 pressed) noexcept {
-    if (pressed) MGO_INFO("button down: %d", button);
-    else         MGO_INFO("button up: %d", button);
-
     u32 mask = (1ULL << button);
     b8 is_down = ( s_state.mouse_current.bits & (mask) ) != 0;
 
@@ -99,8 +93,6 @@ void input_process_button(buttons button, b8 pressed) noexcept {
 
 void input_process_mouse_move(f32 x, f32 y) noexcept {
     if (s_state.mouse_current.x != x || s_state.mouse_current.y != y) {
-        MGO_INFO("Mouse move: x=%f y=%f", x, y);
-
         s_state.mouse_current.x = x;
         s_state.mouse_current.y = y;
 
@@ -113,7 +105,6 @@ void input_process_mouse_move(f32 x, f32 y) noexcept {
 
 void input_process_mouse_wheel(i8 z_delta) noexcept {
     // NOTE: no internal state for mouse wheel
-    MGO_INFO("Mouse wheel: %d", z_delta);
     EventContext ctx;
     ctx.data.u8[0] = z_delta;
     event_fire(EVENT_CODE_MOUSE_WHEEL, 0, ctx);
