@@ -2,13 +2,7 @@
 
 #include <defines.h>
 
-enum class GraphicsAPI {
-    None,
-    Vulkan,
-    OpenGL,
-    DirectX,
-};
-
+#include "renderer_types.h"
 class RendererAPI {
     public:
         virtual ~RendererAPI() = default;

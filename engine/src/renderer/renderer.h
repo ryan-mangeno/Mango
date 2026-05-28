@@ -1,14 +1,13 @@
 #pragma once
 
-#include "renderer_api.h"
-#include "renderer_types.h"
 
-struct static_mesh_data;
+struct StaticMeshData;
+struct RenderPacket;
 
 class Renderer {
     public:
-        b8 init(const char* app_name);
-        void shutdown();
-        void on_resized(u16 width, u16 height);
-        void draw_frame(RenderPacket* packet);
+        static b8 init(const char* app_name);
+        static void shutdown();
+        static void on_resized(u16 width, u16 height);
+        static void draw_frame(RenderPacket* packet);
 };
