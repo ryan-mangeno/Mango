@@ -58,7 +58,7 @@ b8 Application::create_app(game* game_inst) {
         return FALSE;
     }
 
-    if (!Renderer::init(game_inst->app_config.title)) {
+    if (!renderer_init(game_inst->app_config.title)) {
         MGO_FATAL("Failed to initialize renderer. Aborting application.");
         return FALSE;
     }
@@ -116,7 +116,7 @@ void Application::run() {
 
             RenderPacket packet;
             packet.delta_time = delta_time;
-            Renderer::draw_frame(&packet);
+            renderer_draw_frame(&packet);
 
             f64 frame_end_time = Platform::get_absolute_time();
             f64 frame_elapsed_time = frame_end_time - frame_start_time;
@@ -152,11 +152,14 @@ void Application::shutdown() {
     // we could've failed before initialization, event_shutdown is safe 
     // but platform_state shutdown isn't if initialized isnt true
     if (s_initialized) {
+        
         event_unregister(EVENT_CODE_APPLICATION_QUIT, this, Application::on_event);
         event_unregister(EVENT_CODE_KEY_PRESSED, this, Application::on_key);
         event_unregister(EVENT_CODE_KEY_RELEASED, this, Application::on_key);
+
         event_shutdown();
         input_shutdown();
+        renderer_shutdown();
         s_app_state.platform_state->shutdown();
     }
 

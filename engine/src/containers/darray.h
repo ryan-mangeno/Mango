@@ -21,7 +21,6 @@ class MGO_API darray {
 
         ~darray() {
             if (m_elements) {
-                MGO_DEBUG("Destructing Darray");
                 if constexpr (!is_trivial_v<T>) {
                     for (u64 i=0 ; i<m_length; ++i) {
                         m_elements[i].~T(); // we only destroy the object, the block is freed below
