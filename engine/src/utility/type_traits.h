@@ -5,6 +5,7 @@
 
 #include "defines.h"
 
+
 // --- std::integral_constant ---
 template<typename T, T v>
 struct integral_constant {
@@ -21,11 +22,25 @@ template<typename T> struct remove_reference<T&>  { using type = T; };
 template<typename T> struct remove_reference<T&&> { using type = T; };
 template<typename T> using  remove_reference_t    = typename remove_reference<T>::type;
 
+// declval
+template<typename T>
+remove_reference_t<T>&& declval() noexcept;
+
 // --- std::move ---
 template<typename T>
 constexpr remove_reference_t<T>&& move(T&& t) noexcept {
     return static_cast<remove_reference_t<T>&&>(t);
 }
+template<typename T, typename = void>
+struct is_move_constructible : false_type {};
+
+template<typename T>
+struct is_move_constructible<T, decltype(void(
+    T(declval<remove_reference_t<T>&&>())
+))> : true_type {};
+
+template<typename T>
+static constexpr b8 is_move_constructible_v = is_move_constructible<T>::value;
 
 // --- std::forward ---
 template<typename T>
@@ -51,13 +66,10 @@ template<typename T>             struct is_same<T, T> : true_type  { };
 
 
 // --- std::is_trivial ---
-template<typename T> struct is_trivial  { static constexpr b8 value = __is_trivial(T) == TRUE; };
+template<typename T> struct is_trivial  { static constexpr b8 value = __is_trivial(T); };
 template<typename T> static constexpr b8 is_trivial_v = is_trivial<T>::value;
 
 // --- std::is_copyable ---
-template<typename T>
-T&& declval();
-
 template<typename T, typename = void> struct is_copyable : false_type {};
 template<typename T>
 struct is_copyable<T, decltype(void(
@@ -65,7 +77,7 @@ struct is_copyable<T, decltype(void(
     declval<T&>() = declval<T>() // copy assign
 ))> : true_type {};
 
-template<typename T> static constexpr b8 is_copyable_v = is_trivial<T>::value;
+template<typename T> static constexpr b8 is_copyable_v = is_copyable<T>::value;
 
 // allows overriding of new and delete ops so I can use my own with placement new
 inline void* operator new(unsigned long, void* ptr) noexcept { 

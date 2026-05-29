@@ -34,7 +34,7 @@ class MGO_API darray {
         template<typename... Args>
         inline void emplace_back(Args&&... args) {
             if (m_length == m_capacity) {
-                grow();
+                _grow();
             } 
             mg_construct_at(&m_elements[m_length], MEMORY_TAG_DARRAY, forward<Args>(args)...);
             m_length++;
@@ -43,7 +43,7 @@ class MGO_API darray {
         template <typename U, typename = enable_if_t<is_same<T, decay_t<U>>::value>>
         inline void push_back(U&& element) {
             if (m_length == m_capacity) {
-                grow();
+                _grow();
             }
             if constexpr (is_trivial_v<T>) {
                 mg_copy_memory(&m_elements[m_length], &element, sizeof(T));
@@ -58,7 +58,7 @@ class MGO_API darray {
             MGO_ASSERT(index <= m_length);
 
             if (m_length == m_capacity) {
-                grow();
+                _grow();
             }
             
             if constexpr (is_trivial_v<T>) {
@@ -156,7 +156,7 @@ class MGO_API darray {
         inline u64 capacity() const noexcept { return m_capacity; }
 
     private:
-        inline void grow() {
+        inline void _grow() {
             resize(m_capacity == 0 ? 4 : m_capacity * 2);
         }
 
