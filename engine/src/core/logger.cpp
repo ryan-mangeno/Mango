@@ -43,9 +43,9 @@ void Logger::log_message(log_level level, const char* message, ...) {
     snprintf(final_buffer, sizeof(final_buffer), "%s%s", level_str, message_buffer);
     
     if (is_err) {
-        Platform::console_write(final_buffer, level);
-    } else {
         Platform::console_write_error(final_buffer, level);
+    } else {
+        Platform::console_write(final_buffer, level);
     }
 }
 

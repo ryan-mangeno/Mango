@@ -2,6 +2,8 @@
 
 #include "renderer/renderer_api.h"
 
+#include "containers/darray.h"
+
 // TODO: fill out
 class VulkanAPI : public RendererAPI {
     public:
@@ -14,4 +16,5 @@ class VulkanAPI : public RendererAPI {
         virtual b8 begin_frame(f32 delta_time) override;
         virtual b8 end_frame(f32 delta_time) override;
     private:
+        void _get_required_extensions(darray<const char*>& extensions);
 };

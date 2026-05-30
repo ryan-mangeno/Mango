@@ -35,9 +35,10 @@ class Application {
             Clock clock;
         };
 
-        static b8 on_event(u16 code, void* sender, void* listener_inst, EventContext ctx);
-        static b8 on_key(u16 code, void* sender, void* listener_inst, EventContext ctx);
-
+        static b8 _on_event(u16 code, void* sender, void* listener_inst, EventContext ctx);
+        static b8 _on_key(u16 code, void* sender, void* listener_inst, EventContext ctx);
+    
+    private:
         static State s_app_state;
         static Application* s_instance;
 };

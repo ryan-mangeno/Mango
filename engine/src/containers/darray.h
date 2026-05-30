@@ -9,158 +9,159 @@
 template<typename T>
 class MGO_API darray {
     public:
-        darray() noexcept : m_elements(nullptr), m_capacity(0), m_length(0) {
+        darray() noexcept : _elements(nullptr), _capacity(0), _length(0) {
         }
 
-        darray(u64 length, u64 capacity) noexcept : m_capacity(capacity), m_length(length) {
-            m_elements = static_cast<T*>(mg_allocate(m_capacity * sizeof(T), MEMORY_TAG_DARRAY));
-            for (u64 i=0 ; i<m_length ; ++i) {
-                mg_construct_at(&m_elements[i], MEMORY_TAG_DARRAY);
+        darray(u64 length, u64 capacity) noexcept : _capacity(capacity), _length(length) {
+            _elements = static_cast<T*>(mg_allocate(_capacity * sizeof(T), MEMORY_TAG_DARRAY));
+            for (u64 i=0 ; i<_length ; ++i) {
+                mg_construct_at(&_elements[i], MEMORY_TAG_DARRAY);
             }
         }
 
         ~darray() {
-            if (m_elements) {
+            if (_elements) {
                 if constexpr (!is_trivial_v<T>) {
-                    for (u64 i=0 ; i<m_length; ++i) {
-                        m_elements[i].~T(); // we only destroy the object, the block is freed below
+                    for (u64 i=0 ; i<_length; ++i) {
+                        _elements[i].~T(); // we only destroy the object, the block is freed below
                     }
                 }
-                mg_free(m_elements, m_capacity * sizeof(T), MEMORY_TAG_DARRAY);
-                m_elements = nullptr;
+                mg_free(_elements, _capacity * sizeof(T), MEMORY_TAG_DARRAY);
+                _elements = nullptr;
             }
         }
         
         template<typename... Args>
         inline void emplace_back(Args&&... args) {
-            if (m_length == m_capacity) {
+            if (_length == _capacity) {
                 _grow();
             } 
-            mg_construct_at(&m_elements[m_length], MEMORY_TAG_DARRAY, forward<Args>(args)...);
-            m_length++;
+            mg_construct_at(&_elements[_length], MEMORY_TAG_DARRAY, forward<Args>(args)...);
+            _length++;
         }
 
-        template <typename U, typename = enable_if_t<is_same<T, decay_t<U>>::value>>
+        template <typename U>
         inline void push_back(U&& element) {
-            if (m_length == m_capacity) {
+            if (_length == _capacity) {
                 _grow();
             }
             if constexpr (is_trivial_v<T>) {
-                mg_copy_memory(&m_elements[m_length], &element, sizeof(T));
+                mg_copy_memory(&_elements[_length], &element, sizeof(T));
             } else {
-                mg_construct_at(&m_elements[m_length], MEMORY_TAG_DARRAY, forward<U>(element));
+                mg_construct_at(&_elements[_length], MEMORY_TAG_DARRAY, forward<U>(element));
             }
-            m_length++;
+            _length++;
         }
 
         template <typename U>
         void insert(u64 index, U&& element) {
-            MGO_ASSERT(index <= m_length);
+            MGO_ASSERT(index <= _length);
 
-            if (m_length == m_capacity) {
+            if (_length == _capacity) {
                 _grow();
             }
             
             if constexpr (is_trivial_v<T>) {
                 // triv types don't care about constructors
-                u64 elements_to_move = m_length - index;
+                u64 elements_to_move = _length - index;
                 if (elements_to_move > 0) {
-                    mg_copy_memory(&m_elements[index + 1], &m_elements[index], elements_to_move * sizeof(T));
+                    mg_copy_memory(&_elements[index + 1], &_elements[index], elements_to_move * sizeof(T));
                 }
                 // raw copy assignment
-                m_elements[index] = forward<U>(element);
+                _elements[index] = forward<U>(element);
             } else {
-                if (index == m_length) {
+                if (index == _length) {
                     // Edge case: Inserting at the very end (push_back behavior)
-                    mg_construct_at(&m_elements[index], MEMORY_TAG_DARRAY, forward<U>(element));
+                    mg_construct_at(&_elements[index], MEMORY_TAG_DARRAY, forward<U>(element));
                 } else {
                     // move construct the last active element into the raw unconstructed slot
-                    mg_construct_at(&m_elements[m_length], MEMORY_TAG_DARRAY, move(m_elements[m_length - 1]));
+                    mg_construct_at(&_elements[_length], MEMORY_TAG_DARRAY, move(_elements[_length - 1]));
                     
                     // shift the rest of the elements backward using standard move asignment
-                    for (u64 i = m_length - 1; i > index; --i) {
-                        m_elements[i] = move(m_elements[i - 1]);
+                    for (u64 i = _length - 1; i > index; --i) {
+                        _elements[i] = move(_elements[i - 1]);
                     }
                     
                     // move the incoming element into the target index using move assignment
-                    m_elements[index] = forward<U>(element);
+                    _elements[index] = forward<U>(element);
                 }
             }
             
-            m_length++;
+            _length++;
         }
 
         inline void pop_back() {
-            if (m_length > 0) {
+            if (_length > 0) {
                 if constexpr (!is_trivial_v<T>) {
-                    m_elements[m_length - 1].~T(); 
+                    _elements[_length - 1].~T(); 
                 }
-                m_length--;
+                _length--;
             }
         }
 
         void erase(u64 index) {
-            MGO_ASSERT(index < m_length);
+            MGO_ASSERT(index < _length);
 
             if constexpr (is_trivial_v<T>) {
-                u64 elements_to_move = m_length - index - 1;
+                u64 elements_to_move = _length - index - 1;
                 if (elements_to_move > 0) {
                     // shift mem left by 1
-                    mg_copy_memory(&m_elements[index], &m_elements[index + 1], elements_to_move * sizeof(T));
+                    mg_copy_memory(&_elements[index], &_elements[index + 1], elements_to_move * sizeof(T));
                 }
             } else {
                 // destroy the target element first
-                m_elements[index].~T();
+                _elements[index].~T();
 
                 // shift remaining elements down via move construction
-                for (u64 i = index; i < m_length - 1; ++i) {
-                    mg_construct_at(&m_elements[i], MEMORY_TAG_DARRAY, move(m_elements[i + 1]));
-                    m_elements[i + 1].~T(); // Clean up the old slot
+                for (u64 i = index; i < _length - 1; ++i) {
+                    mg_construct_at(&_elements[i], MEMORY_TAG_DARRAY, move(_elements[i + 1]));
+                    _elements[i + 1].~T(); // Clean up the old slot
                 }
             }
 
-            m_length--;
+            _length--;
         }
 
         void resize(u64 new_capacity) {
-            if (new_capacity <= m_capacity) return;
+            if (new_capacity <= _capacity) return;
 
             T* new_elements = static_cast<T*>(mg_allocate(new_capacity * sizeof(T), MEMORY_TAG_DARRAY));
             
-            if (m_elements) {
+            if (_elements) {
                 if constexpr (is_trivial_v<T>) {
-                    mg_copy_memory(new_elements, m_elements, m_length * sizeof(T));
+                    mg_copy_memory(new_elements, _elements, _length * sizeof(T));
                 } else {
-                    for (u64 i=0; i<m_length; ++i) {
-                        mg_construct_at(&new_elements[i], MEMORY_TAG_DARRAY, move(m_elements[i]));
-                        m_elements[i].~T();
+                    for (u64 i=0; i<_length; ++i) {
+                        mg_construct_at(&new_elements[i], MEMORY_TAG_DARRAY, move(_elements[i]));
+                        _elements[i].~T();
                     }
                 }
-                mg_free(m_elements, m_capacity * sizeof(T), MEMORY_TAG_DARRAY);
+                mg_free(_elements, _capacity * sizeof(T), MEMORY_TAG_DARRAY);
             }
             
-            m_elements = new_elements;
-            m_capacity = new_capacity;
+            _elements = new_elements;
+            _capacity = new_capacity;
         }
 
         inline const T& get(u64 index) {
-            MGO_ASSERT(index >= 0 && index < m_length);
-            return m_elements[index];
+            MGO_ASSERT(index >= 0 && index < _length);
+            return _elements[index];
         }
 
         inline const T& operator [](u64 index) noexcept {
-            return m_elements[index];
+            return _elements[index];
         }
 
-        inline u64 size() const noexcept { return m_length; }
-        inline u64 capacity() const noexcept { return m_capacity; }
+        inline u64 size() const noexcept { return _length; }
+        inline u64 capacity() const noexcept { return _capacity; }
+        inline T* data() { return _elements; }
 
     private:
         inline void _grow() {
-            resize(m_capacity == 0 ? 4 : m_capacity * 2);
+            resize(_capacity == 0 ? 4 : _capacity * 2);
         }
 
-        T* m_elements;
-        u64 m_capacity;
-        u64 m_length;
+        T* _elements;
+        u64 _capacity;
+        u64 _length;
 };

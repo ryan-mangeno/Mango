@@ -50,7 +50,7 @@ class Platform {
 		static f64 get_absolute_time() noexcept;
 
 		static void sleep(u64 ms) noexcept;
-	
+
 	private:
 		InternalState* m_internal_state = nullptr;
 };

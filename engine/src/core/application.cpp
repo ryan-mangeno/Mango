@@ -47,9 +47,9 @@ b8 Application::create_app(game* game_inst) {
         return FALSE;
     }
 
-    event_register(EVENT_CODE_APPLICATION_QUIT, this, Application::on_event);
-    event_register(EVENT_CODE_KEY_PRESSED, this, Application::on_key);
-    event_register(EVENT_CODE_KEY_RELEASED, this, Application::on_key);
+    event_register(EVENT_CODE_APPLICATION_QUIT, this, Application::_on_event);
+    event_register(EVENT_CODE_KEY_PRESSED, this, Application::_on_key);
+    event_register(EVENT_CODE_KEY_RELEASED, this, Application::_on_key);
 
     s_app_state.platform_state = mg_new<Platform>(MEMORY_TAG_APPLICATION);
 
@@ -152,10 +152,10 @@ void Application::shutdown() {
     // we could've failed before initialization, event_shutdown is safe 
     // but platform_state shutdown isn't if initialized isnt true
     if (s_initialized) {
-        
-        event_unregister(EVENT_CODE_APPLICATION_QUIT, this, Application::on_event);
-        event_unregister(EVENT_CODE_KEY_PRESSED, this, Application::on_key);
-        event_unregister(EVENT_CODE_KEY_RELEASED, this, Application::on_key);
+
+        event_unregister(EVENT_CODE_APPLICATION_QUIT, this, Application::_on_event);
+        event_unregister(EVENT_CODE_KEY_PRESSED, this, Application::_on_key);
+        event_unregister(EVENT_CODE_KEY_RELEASED, this, Application::_on_key);
 
         event_shutdown();
         input_shutdown();
@@ -171,7 +171,7 @@ void Application::shutdown() {
 }
 
 
-b8 Application::on_event(u16 code, void* sender, void* listener_inst, EventContext ctx) {
+b8 Application::_on_event(u16 code, void* sender, void* listener_inst, EventContext ctx) {
     Application* app = static_cast<Application*>(listener_inst);
 
     switch (code) {
@@ -184,7 +184,7 @@ b8 Application::on_event(u16 code, void* sender, void* listener_inst, EventConte
     return FALSE;
 }
 
-b8 Application::on_key(u16 code, void* sender, void* listener_inst, EventContext ctx) {
+b8 Application::_on_key(u16 code, void* sender, void* listener_inst, EventContext ctx) {
     if (code == EVENT_CODE_KEY_PRESSED) {
         u16 key_code = ctx.data.u16[0];
         if (key_code == KEY_ESCAPE) {

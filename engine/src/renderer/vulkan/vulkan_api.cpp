@@ -27,26 +27,32 @@ b8 VulkanAPI::init(const char* app_name) {
 
     VkInstanceCreateInfo create_info = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
     create_info.pApplicationInfo = &app_info;
-    create_info.enabledExtensionCount = 0;
-    create_info.ppEnabledExtensionNames = 0;
+
+    darray<const char*> required_extensions;
+    _get_required_extensions(required_extensions);
+    
+#if defined(_DEBUG)
+    required_extensions.push_back(&VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+    MGO_DEBUG("Required Extensions:");
+    u64 len = required_extensions.size();
+    for (u64 i=0 ; i<len ; ++i) {
+        MGO_DEBUG(required_extensions[i]);
+    }
+#endif
+
+    create_info.enabledExtensionCount = required_extensions.size();
+    create_info.ppEnabledExtensionNames = required_extensions.data();
+    create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
     create_info.enabledLayerCount = 0;
     create_info.ppEnabledLayerNames = 0;
-
-    // hardcoding for now
-#if defined(MGO_PLATFORM_APPLE)
-    const char* apple_extensions[] = {
-        VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME
-    };
-    create_info.enabledExtensionCount = 1;
-    create_info.ppEnabledExtensionNames = apple_extensions;
-    create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
-#endif
 
     VkResult result = vkCreateInstance(&create_info, s_context.allocator, &s_context.instance);
     if(result != VK_SUCCESS) {
         MGO_ERROR("vkCreateInstance failed with result: %d", (i32)result);
         return FALSE;
     }
+    
 
     MGO_INFO("Vulkan renderer initialized successfully.");
     return TRUE;
@@ -69,4 +75,28 @@ b8 VulkanAPI::begin_frame(f32 delta_time) {
 
 b8 VulkanAPI::end_frame(f32 delta_time) {
     return TRUE;
+}
+
+void VulkanAPI::_get_required_extensions(darray<const char*>& extensions) {
+    extensions.push_back(&VK_KHR_SURFACE_EXTENSION_NAME);
+
+#if defined(MGO_PLATFORM_WINDOWS)
+
+    extensions.push_back(
+        &VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+
+#elif defined(MGO_PLATFORM_APPLE)
+
+    //extensions.push_back(
+        //&VK_EXT_METAL_SURFACE_EXTENSION_NAME);
+
+    extensions.push_back(
+        &VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+
+#elif defined(MGO_PLATFORM_LINUX)
+
+    extensions.push_back(
+        &VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+
+#endif
 }
