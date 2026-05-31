@@ -32,7 +32,7 @@ b8 VulkanAPI::init(const char* app_name) {
     _get_required_extensions(required_extensions);
     
 #if defined(_DEBUG)
-    required_extensions.push_back(&VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    required_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
     MGO_DEBUG("Required Extensions:");
     u64 len = required_extensions.size();
@@ -78,25 +78,25 @@ b8 VulkanAPI::end_frame(f32 delta_time) {
 }
 
 void VulkanAPI::_get_required_extensions(darray<const char*>& extensions) {
-    extensions.push_back(&VK_KHR_SURFACE_EXTENSION_NAME);
+    extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
 #if defined(MGO_PLATFORM_WINDOWS)
 
     extensions.push_back(
-        &VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+        VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 
 #elif defined(MGO_PLATFORM_APPLE)
 
     //extensions.push_back(
-        //&VK_EXT_METAL_SURFACE_EXTENSION_NAME);
+        //VK_EXT_METAL_SURFACE_EXTENSION_NAME);
 
     extensions.push_back(
-        &VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+        VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 
 #elif defined(MGO_PLATFORM_LINUX)
 
     extensions.push_back(
-        &VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+        VK_KHR_XCB_SURFACE_EXTENSION_NAME);
 
 #endif
 }

@@ -40,21 +40,29 @@ class MGO_API darray {
             _length++;
         }
 
-        template <typename U>
-        inline void push_back(U&& element) {
-            if (_length == _capacity) {
-                _grow();
-            }
+        void push_back(const T& value) {
+            if (_length == _capacity) _grow();
+
             if constexpr (is_trivial_v<T>) {
-                mg_copy_memory(&_elements[_length], &element, sizeof(T));
+                _elements[_length] = value;
             } else {
-                mg_construct_at(&_elements[_length], MEMORY_TAG_DARRAY, forward<U>(element));
+                mg_construct_at(&_elements[_length], MEMORY_TAG_DARRAY, value);
             }
             _length++;
         }
 
-        template <typename U>
-        void insert(u64 index, U&& element) {
+        void push_back(T&& value) {
+            if (_length == _capacity) _grow();
+
+            if constexpr (is_trivial_v<T>) {
+                _elements[_length] = move(value);
+            } else {
+                mg_construct_at(&_elements[_length], MEMORY_TAG_DARRAY, move(value));
+            }
+            _length++;
+        }
+
+        void insert(u64 index, const T& element) {
             MGO_ASSERT(index <= _length);
 
             if (_length == _capacity) {
@@ -62,28 +70,48 @@ class MGO_API darray {
             }
             
             if constexpr (is_trivial_v<T>) {
-                // triv types don't care about constructors
                 u64 elements_to_move = _length - index;
                 if (elements_to_move > 0) {
                     mg_copy_memory(&_elements[index + 1], &_elements[index], elements_to_move * sizeof(T));
                 }
-                // raw copy assignment
-                _elements[index] = forward<U>(element);
+                _elements[index] = element;
             } else {
                 if (index == _length) {
-                    // Edge case: Inserting at the very end (push_back behavior)
-                    mg_construct_at(&_elements[index], MEMORY_TAG_DARRAY, forward<U>(element));
+                    mg_construct_at(&_elements[index], MEMORY_TAG_DARRAY, element);
                 } else {
-                    // move construct the last active element into the raw unconstructed slot
                     mg_construct_at(&_elements[_length], MEMORY_TAG_DARRAY, move(_elements[_length - 1]));
-                    
-                    // shift the rest of the elements backward using standard move asignment
                     for (u64 i = _length - 1; i > index; --i) {
                         _elements[i] = move(_elements[i - 1]);
                     }
-                    
-                    // move the incoming element into the target index using move assignment
-                    _elements[index] = forward<U>(element);
+                    _elements[index] = element;  // copy assign
+                }
+            }
+            
+            _length++;
+        }
+
+        void insert(u64 index, T&& element) {
+            MGO_ASSERT(index <= _length);
+
+            if (_length == _capacity) {
+                _grow();
+            }
+            
+            if constexpr (is_trivial_v<T>) {
+                u64 elements_to_move = _length - index;
+                if (elements_to_move > 0) {
+                    mg_copy_memory(&_elements[index + 1], &_elements[index], elements_to_move * sizeof(T));
+                }
+                _elements[index] = move(element);
+            } else {
+                if (index == _length) {
+                    mg_construct_at(&_elements[index], MEMORY_TAG_DARRAY, move(element));
+                } else {
+                    mg_construct_at(&_elements[_length], MEMORY_TAG_DARRAY, move(_elements[_length - 1]));
+                    for (u64 i = _length - 1; i > index; --i) {
+                        _elements[i] = move(_elements[i - 1]);
+                    }
+                    _elements[index] = move(element);  // move assign
                 }
             }
             
