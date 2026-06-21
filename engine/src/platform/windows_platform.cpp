@@ -2,265 +2,259 @@
 
 #if MGO_PLATFORM_WINDOWS
 
+#include <stdlib.h>
 #include <windows.h>
 #include <windowsx.h>
-#include <stdlib.h>
 
 #include "input.h"
 
 // defined at bottom
-LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param);
+LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param,
+                                       LPARAM l_param);
 
 struct InternalState {
-    HINSTANCE h_instance;
-    HWND hwnd;
+  HINSTANCE h_instance;
+  HWND hwnd;
 };
 
-static f64 clock_frequency; // multiplier to take clock cycles and multiply by this to get start time
+static f64 clock_frequency; // multiplier to take clock cycles and multiply by
+                            // this to get start time
 static LARGE_INTEGER start_time;
 
 // TODO: should add running bool to state
 b8 Platform::is_running() { return TRUE; }
 
-b8 Platform::startup(const AppConfig& attribs) {
-    
-    m_internal_state = static_cast<InternalState*>(malloc(sizeof(InternalState)));
+b8 Platform::startup(const AppConfig &attribs) {
 
-    InternalState* state = m_internal_state;
-    
-    state->h_instance = GetModuleHandle(0);
+  m_internal_state =
+      static_cast<InternalState *>(malloc(sizeof(InternalState)));
 
-    // setup and register window class
-    HICON icon = LoadIcon(state->h_instance, IDI_APPLICATION);
-    WNDCLASSA wc;
-    memset(&wc, 0, sizeof(wc));
-    wc.style = CS_DBCLKS; // get double clicks
-    wc.lpfnWndProc = win32_process_message; // for handling events
-    wc.cbClsExtra = 0;
-    wc.cvWndExtra = 0;
-    wc.hInstance = state->h_instance;
-    wc.hIcon = icon;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW); // manage the cursor manually
-    wc.hbrBackround = NULL; // transparent
-    wc.lpszClassName = "mango_window_class";
+  InternalState *state = m_internal_state;
 
-    if (!RegisterClass(&wc)) {
-        MessageBoxA(0, "window registration failed", "Error", MB_ICONEXCLAMATION | MB_OK);
-        return false;
-    }
+  state->h_instance = GetModuleHandle(0);
 
-    const auto [name, x, y, width, height] = attribs;
+  // setup and register window class
+  HICON icon = LoadIcon(state->h_instance, IDI_APPLICATION);
+  WNDCLASSA wc;
+  memset(&wc, 0, sizeof(wc));
+  wc.style = CS_DBCLKS;                   // get double clicks
+  wc.lpfnWndProc = win32_process_message; // for handling events
+  wc.cbClsExtra = 0;
+  wc.cvWndExtra = 0;
+  wc.hInstance = state->h_instance;
+  wc.hIcon = icon;
+  wc.hCursor = LoadCursor(NULL, IDC_ARROW); // manage the cursor manually
+  wc.hbrBackround = NULL;                   // transparent
+  wc.lpszClassName = "mango_window_class";
 
-    // the window includes the frame and active window area
-    // the outer frame is like the x button, meta data, etc
-    // we must handle both seperatly
+  if (!RegisterClass(&wc)) {
+    MessageBoxA(0, "window registration failed", "Error",
+                MB_ICONEXCLAMATION | MB_OK);
+    return false;
+  }
 
-    u32 client_x = x;
-    u32 client_y = y;
-    u32 client_width = width;
-    u32 client_height = height;
+  const auto [name, x, y, width, height] = attribs;
 
-    u32 window_x = x;
-    u32 window_y = y;
-    u32 window_width = width;
-    u32 window_height = height;
+  // the window includes the frame and active window area
+  // the outer frame is like the x button, meta data, etc
+  // we must handle both seperatly
 
-    u32 window_style    = WS_OVERLAPPED 
-                        | WS_SYSMENU 
-                        | WS_CAPTION
-                        | WS_MAXIMIZEBOX
-                        | WS_MINIMIZEBOX
-                        | WS_THICKFRAME;
+  u32 client_x = x;
+  u32 client_y = y;
+  u32 client_width = width;
+  u32 client_height = height;
 
-    u32 window_ex_style = WS_EX_APPWINDOW;
+  u32 window_x = x;
+  u32 window_y = y;
+  u32 window_width = width;
+  u32 window_height = height;
 
-    // get the offset of the window frame and client area
-    RECT border_rect = {0,0,0,0};
-    AdjustWindowRectEx(&border_rect, window_style, 0, window_ex_style);
+  u32 window_style = WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION | WS_MAXIMIZEBOX |
+                     WS_MINIMIZEBOX | WS_THICKFRAME;
 
-    // push out window x and y by the border offset
-    window_x += border_rect.left;
-    window_y += border_rect.top;
+  u32 window_ex_style = WS_EX_APPWINDOW;
 
-    // grow by size of os border
-    window_width  += border_rect.right  - border_rect.left;
-    window_height += border_rect.bottom - border_rect.top;
+  // get the offset of the window frame and client area
+  RECT border_rect = {0, 0, 0, 0};
+  AdjustWindowRectEx(&border_rect, window_style, 0, window_ex_style);
 
-    HWND handle = CreateWindowExA(
-        window_ex_style, "mango_window_class", name,
-        window_style, window_x, window_y, window_width, window_height,
-        0, 0, state->h_instance, 0);
+  // push out window x and y by the border offset
+  window_x += border_rect.left;
+  window_y += border_rect.top;
 
-    if (handle == 0) {
-        MessageBoxA(0, "window registration failed", "Error", MB_ICONEXCLAMATION | MB_OK);
-        MGO_FATAL("window creation failed!");
-        return FALSE;
-    }
-    else {
-        state->hwnd = handle;
-    }
+  // grow by size of os border
+  window_width += border_rect.right - border_rect.left;
+  window_height += border_rect.bottom - border_rect.top;
 
-    b8 should_activate = TRUE; // TODO: if the window should not accept input, this should be false
-    i32 show_window_command_flags = should_activate ? SW_SHOW : SW_SHOWNOACTIVATE;
-    // if initially minimized use SW_MINIMIZE : SW_SHOWMINNOACTIVE
-    // if initially maximized use SW_SHOWMAXIMIZED : SW_MAXIMIZE
-    ShowWindow(state->hwnd, show_window_command_flags);
+  HWND handle = CreateWindowExA(window_ex_style, "mango_window_class", name,
+                                window_style, window_x, window_y, window_width,
+                                window_height, 0, 0, state->h_instance, 0);
 
-    // clock setup
-    LARGE_INTEGER frequency;
-    QueryPerformanceFrequency(&frequency);
-    clock_frequency = 1.0 / static_cast<f64>(frequency.QuadPart);
-    QueryPerformanceCounter(&start_time);
+  if (handle == 0) {
+    MessageBoxA(0, "window registration failed", "Error",
+                MB_ICONEXCLAMATION | MB_OK);
+    MGO_FATAL("window creation failed!");
+    return FALSE;
+  } else {
+    state->hwnd = handle;
+  }
 
-    return TRUE;
+  b8 should_activate =
+      TRUE; // TODO: if the window should not accept input, this should be false
+  i32 show_window_command_flags = should_activate ? SW_SHOW : SW_SHOWNOACTIVATE;
+  // if initially minimized use SW_MINIMIZE : SW_SHOWMINNOACTIVE
+  // if initially maximized use SW_SHOWMAXIMIZED : SW_MAXIMIZE
+  ShowWindow(state->hwnd, show_window_command_flags);
+
+  // clock setup
+  LARGE_INTEGER frequency;
+  QueryPerformanceFrequency(&frequency);
+  clock_frequency = 1.0 / static_cast<f64>(frequency.QuadPart);
+  QueryPerformanceCounter(&start_time);
+
+  return TRUE;
 }
 
 void Platform::shutdown() {
-    InternalState* state = static_cast<InternalState*>(m_internal_state);
+  InternalState *state = static_cast<InternalState *>(m_internal_state);
 
-    if (state->hwnd) {
-        DestroyWindow(statehwnd);
-        state->hwnd = nullptr;
-    }
-
+  if (state->hwnd) {
+    DestroyWindow(statehwnd);
+    state->hwnd = nullptr;
+  }
 }
 
 b8 Platform::pump_message() {
-    MSG message;
-    while (PeekMessageA(&message, NULL, 0, 0, PM_REMOVE)) {
-        TranslateMessage(&message);
-        DispatchMessage(&message);
-    }
+  MSG message;
+  while (PeekMessageA(&message, NULL, 0, 0, PM_REMOVE)) {
+    TranslateMessage(&message);
+    DispatchMessage(&message);
+  }
 
-    return TRUE;
+  return TRUE;
 }
 
-void* Platform::allocate(u64 size, b8 aligned) {
-    return malloc(size);
-}   
+void *Platform::allocate(u64 size, b8 aligned) { return malloc(size); }
 
-void Platform::free(void* block, b8 aligned) {
-    free(block);
+void Platform::free(void *block, b8 aligned) { free(block); }
+
+void *Platform::zero_memory(void *block, u64 size) {
+  return memset(block, 0, size);
 }
 
-void* Platform::zero_memory(void* block, u64 size) {
-    return memset(block, 0, size);
+void *Platform::copy_memory(void *dest, const void *source, u64 size) {
+  return memcpy(dest, source, size);
 }
 
-void* Platform::copy_memory(void* dest, const void* source, u64 size) {
-    return memcpy(dest, source, size);
+void *Platform::set_memory(void *dest, i32 value, u64 size) {
+  return memset(dest, value, size);
 }
 
-void* Platform::set_memory(void* dest, i32 value, u64 size) {
-    return memset(dest, value, size);
-}   
+void Platform::console_write(const char *message, log_level color) {
+  HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+  // FATAL, ERROR, WARN, INFO, DEBUG, TRACE
+  static u8 levels[6] = {64, 4, 6, 2, 1, 8};
+  SetConsoleTextAttribute(console_handle, levels[color]);
 
-void Platform::console_write(const char* message, log_level color) {
-    HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    // FATAL, ERROR, WARN, INFO, DEBUG, TRACE
-    static u8 levels[6] = {64, 4, 6, 2, 1, 8};
-    SetConsoleTextAttribute(console_handle, levels[color]);
-
-    OutputDebugStringA(message);
-    u64 len = strlen(message);
-    LPDWORD number_written = 0;
-    WriteConsoleA(console_handle, message, (DWORD)len, number_written, 0);
+  OutputDebugStringA(message);
+  u64 len = strlen(message);
+  LPDWORD number_written = 0;
+  WriteConsoleA(console_handle, message, (DWORD)len, number_written, 0);
 }
 
-void Platform::console_write_error(const char* message, log_level color) {
-    HANDLE console_handle = GetStdHandle(STD_ERROR_HANDLE);
-    // FATAL, ERROR, WARN, INFO, DEBUG, TRACE
-    static u8 levels[6] = {64, 4, 6, 2, 1, 8};
-    SetConsoleTextAttribute(console_handle, levels[color]);
+void Platform::console_write_error(const char *message, log_level color) {
+  HANDLE console_handle = GetStdHandle(STD_ERROR_HANDLE);
+  // FATAL, ERROR, WARN, INFO, DEBUG, TRACE
+  static u8 levels[6] = {64, 4, 6, 2, 1, 8};
+  SetConsoleTextAttribute(console_handle, levels[color]);
 
-    OutputDebugStringA(message);
-    u64 len = strlen(message);
-    LPDWORD number_written = 0;
-    WriteConsoleA(console_handle, message, (DWORD)len, number_written, 0);
+  OutputDebugStringA(message);
+  u64 len = strlen(message);
+  LPDWORD number_written = 0;
+  WriteConsoleA(console_handle, message, (DWORD)len, number_written, 0);
 }
 
 f64 Platform::get_absolute_time() {
-    LARGE_INTEGER now_time;
-    QueryPerformanceCounter(&now_time);
-    return static_cast<f64>(now_time.QuadPart * clock_frequency);
+  LARGE_INTEGER now_time;
+  QueryPerformanceCounter(&now_time);
+  return static_cast<f64>(now_time.QuadPart * clock_frequency);
 }
 
-void Platform::sleep(u64 ms) {
-    Sleep(ms);
-}
+void Platform::sleep(u64 ms) { Sleep(ms); }
 
+LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param,
+                                       LPARAM l_param) {
+  switch (msg) {
+  case WM_ERASEBKGND:
+    // notify the os erasing will be handled by app to prevent flicker
+    return 1;
+  case WM_CLOSE:
+    // TODO: fire an event for app to quit
+    return 0;
+  case WM_DESTROY:
+    PostQuitMessage(0);
+    return 0;
+  case WM_SIZE: {
+    // RECT r;
+    // GetClientRect(hwnd, &r);
+    // u32 width = r.right - r.left;
+    // u32 height = r.bottom - r.top;
 
-LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param) {
-    switch (msg) {
-        case WM_ERASEBKGND:
-            // notify the os erasing will be handled by app to prevent flicker
-            return 1;
-        case WM_CLOSE:
-            // TODO: fire an event for app to quit
-            return 0;
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            return 0;
-        case WM_SIZE: {
-            // RECT r;
-            // GetClientRect(hwnd, &r);
-            // u32 width = r.right - r.left;
-            // u32 height = r.bottom - r.top;
-
-            // TODO: fire window resize event
-        }   break;
-        case WM_KEYDOWN:
-        case WM_SYSKEYDOWN:
-        case WM_KEYUP:
-        case WM_SYSKEYUP: {
-            b8 pressed = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
-            keys key = (u16)w_param;
-            input_process_key(key, pressed);
-        }   break;
-        case WM_MOUSEMOVE: {
-            f32 x = GET_X_LPARAM(l_param);
-            f32 y = GET_Y_LPARAM(l_param);
-            input_process_mouse_move(x, y);
-        }   break;
-        case WM_MOUSEHWEEL: {
-            i32 z_delta = GET_WHEEL_DELTA_WPARAM(w_param);
-            if (z_delta != 0) {
-               // flaten input to os-indipendent (-1, 1)
-                z_delta = (z_delta < 0) ? -1 : 1; // just want to know if its up or down;
-                input_process_mouse_wheel(z_delta);
-            }
-
-        }   break;
-        case WM_LBUTTONDOWN:
-        case WM_MBUTTONDOWN:
-        case WM_RBUTTONDOWN:
-        case WM_LBUTTONUP:
-        case WM_MBUTTONUP:
-        case WM_RBUTTONUP: {
-            b8 pressed = msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN;
-            buttons mouse_button = Button::MAX_BUTTONS;
-            switch (msg) {
-                case WM_LBUTTONDOWN:
-                case WM_LBUTTONUP:
-                    mouse_button = Button::LEFT;
-                    break;
-                case WM_MBUTTONDOWN:
-                case WM_MBUTTONUP:
-                    mouse_button = Button::MIDDLE;
-                    break;
-                case WM_RBUTTONDOWN:
-                case WM_RBUTTONUP:
-                    mouse_button = Button::RIGHT;
-                    break;
-            }
-
-            if (mouse_button != Button::MAX_BUTTONS) {
-                input_process_button(mouse_button, pressed);
-            }
-        }   break;
-
-        return DefWindowProcA(hwnd, msg, w_param, l_param);
+    // TODO: fire window resize event
+  } break;
+  case WM_KEYDOWN:
+  case WM_SYSKEYDOWN:
+  case WM_KEYUP:
+  case WM_SYSKEYUP: {
+    b8 pressed = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
+    keys key = (u16)w_param;
+    input_process_key(key, pressed);
+  } break;
+  case WM_MOUSEMOVE: {
+    f32 x = GET_X_LPARAM(l_param);
+    f32 y = GET_Y_LPARAM(l_param);
+    input_process_mouse_move(x, y);
+  } break;
+  case WM_MOUSEHWEEL: {
+    i32 z_delta = GET_WHEEL_DELTA_WPARAM(w_param);
+    if (z_delta != 0) {
+      // flaten input to os-indipendent (-1, 1)
+      z_delta = (z_delta < 0) ? -1 : 1; // just want to know if its up or down;
+      input_process_mouse_wheel(z_delta);
     }
+
+  } break;
+  case WM_LBUTTONDOWN:
+  case WM_MBUTTONDOWN:
+  case WM_RBUTTONDOWN:
+  case WM_LBUTTONUP:
+  case WM_MBUTTONUP:
+  case WM_RBUTTONUP: {
+    b8 pressed =
+        msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN;
+    buttons mouse_button = Button::MAX_BUTTONS;
+    switch (msg) {
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+      mouse_button = Button::LEFT;
+      break;
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+      mouse_button = Button::MIDDLE;
+      break;
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+      mouse_button = Button::RIGHT;
+      break;
+    }
+
+    if (mouse_button != Button::MAX_BUTTONS) {
+      input_process_button(mouse_button, pressed);
+    }
+  } break;
+
+    return DefWindowProcA(hwnd, msg, w_param, l_param);
+  }
 }
 
 #endif

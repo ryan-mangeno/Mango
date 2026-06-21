@@ -14,13 +14,13 @@ Vulkan based Game Engine in C++
 * Lightweight build system - no cmake, avoiding complexities
 * Low-level utilities - binary trees, helpers, etc
 * Platform Layer (Windows and MacOS for now)
-* Logger 
+* Logger
 * File I/O
 * Application Layer
 * Renderer/API Abstraction Layer (Sits over Vulkan)
 * allocators - ecs, mimalloc, etc
 * scripting - hot reloading
-* Physics 
+* Physics
 
 ## Engine Architecture
 ![Arch](README-Assets/EngineArch.png)
