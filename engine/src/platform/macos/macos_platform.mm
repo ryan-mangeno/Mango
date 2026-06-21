@@ -3,7 +3,7 @@
 #if MGO_PLATFORM_APPLE
 
 #include "macos_internals.h"
-#include "platform.h"
+#include "platform/platform.h"
 
 #include "core/assert.h"
 #include "core/logger.h"

@@ -36,3 +36,22 @@ Vulkan based Game Engine in C++
 
 * **Clang++** - If your on MacOS, it will be installed with `xcode-select --install`, for windows follow these instructions, first navigate to [LLVM Releases Page](https://releases.llvm.org/). and select the most recent stable version
 ![Clang Windows Setup](README-Assets/clangsetup.png)
+
+## Optional Neovim / Editor Setup ( If you are not using vscode )
+
+This project supports C++ language tooling through `clangd`. If you use Neovim, VSCode, or another editor with LSP support, you can generate a `compile_commands.json` file so the editor understands the exact build configuration, include paths, and compiler flags used by the project.
+
+### Generating compile_commands.json
+
+Install Bear:
+
+```bash
+brew install bear
+```
+
+Run your build through Bear:
+```bash
+bear -- ./build-all.sh
+```
+
+This generates: `compile_commands.json`

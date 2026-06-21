@@ -1,17 +1,12 @@
 #include "vulkan_api.h"
+#include "containers/darray.h"
 #include "core/logger.h"
 #include "core/mgstring.h"
+#include "platform/platform.h"
+#include "vulkan_platform.h"
 #include "vulkan_types.h"
 
-#include "containers/darray.h"
-
-#include "platform/platform.h"
-
-// include the beta header only on Mac for the portability extension name string
-#if defined(__APPLE__)
 #include <vulkan/vulkan.h>
-#include <vulkan/vulkan_beta.h>
-#endif
 
 static VulkanContext s_context;
 
@@ -29,7 +24,7 @@ b8 VulkanAPI::init(const char *app_name) {
   create_info.pApplicationInfo = &app_info;
 
   darray<const char *> required_extensions;
-  _get_required_extensions(required_extensions);
+  get_required_extensions(required_extensions);
 
 #if defined(_DEBUG)
   required_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -70,24 +65,3 @@ void VulkanAPI::resized(u16 width, u16 height) {}
 b8 VulkanAPI::begin_frame(f32 delta_time) { return TRUE; }
 
 b8 VulkanAPI::end_frame(f32 delta_time) { return TRUE; }
-
-void VulkanAPI::_get_required_extensions(darray<const char *> &extensions) {
-  extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-
-#if defined(MGO_PLATFORM_WINDOWS)
-
-  extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-
-#elif defined(MGO_PLATFORM_APPLE)
-
-  // extensions.push_back(
-  // VK_EXT_METAL_SURFACE_EXTENSION_NAME);
-
-  extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-
-#elif defined(MGO_PLATFORM_LINUX)
-
-  extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-
-#endif
-}

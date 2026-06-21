@@ -1,4 +1,4 @@
-#include "platform.h"
+#include "platform/platform.h"
 
 #if MGO_PLATFORM_WINDOWS
 

@@ -41,3 +41,4 @@
 *.dwo
 
 *bin/
+compile_commands.json
